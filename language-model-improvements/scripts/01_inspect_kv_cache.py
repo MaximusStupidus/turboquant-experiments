@@ -28,14 +28,19 @@ class _Tee:
             st.flush()
 
 
-def _get_kv_layer(pkv, layer_idx):
-    """Extract (K, V) tensors from layer_idx, handling all cache formats."""
-    if hasattr(pkv, 'key_cache'):
-        return pkv.key_cache[layer_idx], pkv.value_cache[layer_idx]
-    if hasattr(pkv, 'to_legacy_cache'):
-        legacy = pkv.to_legacy_cache()
-        return legacy[layer_idx]
-    return pkv[layer_idx]
+def _extract_all_kv(pkv):
+    """Convert any cache format into a list of (K, V) tuples, one per layer."""
+    if hasattr(pkv, 'key_cache') and isinstance(pkv.key_cache, list):
+        return list(zip(pkv.key_cache, pkv.value_cache))
+    # DynamicCache in some transformers versions: iterable of tuples
+    layers = []
+    for item in pkv:
+        if isinstance(item, tuple):
+            # Could be (K, V) or (K, V, something_else) — take first two
+            layers.append((item[0], item[1]))
+        else:
+            raise TypeError(f"Unexpected cache item type: {type(item)}")
+    return layers
 
 
 def report_config(model):
@@ -85,9 +90,9 @@ def inspect_kv_cache_structure(model, tokenizer):
     print(f"  type              : {type(pkv).__name__}")
     print(f"  num layers        : {len(pkv)}")
 
-    # Handle DynamicCache, legacy tuple, or other formats
-    k0, v0 = _get_kv_layer(pkv, 0)
     fmt = type(pkv).__name__
+    kv_layers = _extract_all_kv(pkv)
+    k0, v0 = kv_layers[0]
 
     print(f"  K[layer=0] shape  : {tuple(k0.shape)}")
     print(f"  K[layer=0] dtype  : {k0.dtype}")
@@ -97,7 +102,7 @@ def inspect_kv_cache_structure(model, tokenizer):
     print()
     print(f"  Expected shape: (batch=1, n_kv_heads, seq_len, head_dim)")
 
-    return pkv
+    return kv_layers
 
 
 def report_kv_memory_sweep(cfg, head_dim, weight_bytes):
@@ -132,7 +137,7 @@ def report_kv_memory_sweep(cfg, head_dim, weight_bytes):
 
 def report_value_distributions(pkv, layer_idx: int, num_layers: int):
     """Print K and V per-channel value statistics for one chosen layer."""
-    k, v = _get_kv_layer(pkv, layer_idx)
+    k, v = pkv[layer_idx]
 
     # Shape is (batch, n_kv_heads, seq_len, head_dim).
     # Flatten to (n_tokens, n_channels) where n_channels = n_kv_heads * head_dim.
