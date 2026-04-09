@@ -1,0 +1,74 @@
+Model: NousResearch/Meta-Llama-3.1-8B-Instruct
+Device: cuda (NVIDIA A100-SXM4-80GB)
+Torch: 2.11.0+cu130
+
+Loading NousResearch/Meta-Llama-3.1-8B-Instruct in fp16 ...
+Loaded.
+
+=== Model config ===
+  model_type        : llama
+  hidden_size       : 4096
+  num_hidden_layers : 32
+  num_attention_heads (Q heads): 32
+  num_key_value_heads (KV heads): 8
+  head_dim          : 128
+  vocab_size        : 128256
+  max_position_embeddings: 131072
+  torch_dtype       : torch.float16
+
+=== Model weights ===
+  total parameters  : 8,030,261,248
+  total bytes       : 16,060,522,496 (16.06 GB)
+
+=== Forward pass ===
+  prompt: 'Explain in one sentence what the KV cache is and why it exists in transformer language models.'
+  input_ids shape: (1, 20)
+  num tokens: 20
+
+=== past_key_values structure ===
+  type              : DynamicCache
+  num layers        : 32
+  K[layer=0] shape  : (1, 8, 20, 128)
+  K[layer=0] dtype  : torch.float16
+  K[layer=0] device : cuda:0
+  V[layer=0] shape  : (1, 8, 20, 128)
+  V[layer=0] dtype  : torch.float16
+
+  Expected shape: (batch=1, n_kv_heads, seq_len, head_dim)
+
+=== KV cache memory (analytical, fp16) ===
+  per token: 131,072 bytes (128.0 KB)
+
+   seq_len          KV bytes     KV (GB)    vs weights
+  ------------------------------------------------------
+      1024       134,217,728       0.13         0.8%
+      2048       268,435,456       0.27         1.7%
+      4096       536,870,912       0.54         3.3%
+      8192     1,073,741,824       1.07         6.7%
+     16384     2,147,483,648       2.15        13.4%
+     32768     4,294,967,296       4.29        26.7%
+     65536     8,589,934,592       8.59        53.5%
+    131072    17,179,869,184      17.18       107.0%
+
+  Model weight memory: 16.06 GB
+  KV = weights crossover at: ~122,532 tokens
+
+=== K/V value distributions — layer 0 (first) ===
+  K: shape=(20, 1024)  mean=-0.0284  std=1.4737  min=-9.867  max=+8.578  p99.9=7.712
+  V: shape=(20, 1024)  mean=-0.0001  std=0.0365  min=-0.464  max=+0.471  p99.9=0.292
+  K outlier channels (>10x median max-abs): none
+  V outlier channels (>10x median max-abs): none
+
+=== K/V value distributions — layer 16 (middle) ===
+  K: shape=(20, 1024)  mean=-0.0089  std=1.8181  min=-13.578  max=+16.250  p99.9=13.185
+  V: shape=(20, 1024)  mean=-0.0015  std=0.2568  min=-1.543  max=+1.825  p99.9=1.250
+  K outlier channels (>10x median max-abs): none
+  V outlier channels (>10x median max-abs): none
+
+=== K/V value distributions — layer 31 (last) ===
+  K: shape=(20, 1024)  mean=-0.0315  std=1.8525  min=-15.492  max=+14.992  p99.9=14.090
+  V: shape=(20, 1024)  mean=-0.0139  std=0.5819  min=-5.738  max=+5.535  p99.9=4.281
+  K outlier channels (>10x median max-abs): none
+  V outlier channels (>10x median max-abs): none
+
+=== Done ===
