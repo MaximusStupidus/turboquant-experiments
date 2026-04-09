@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+.venv/
+.python-version
+.vscode/
+.idea/
+.DS_Store
+*.bin
+*.safetensors
+*.gguf
+.env
+.env.*
+hf_token.txt
+.pytest_cache/

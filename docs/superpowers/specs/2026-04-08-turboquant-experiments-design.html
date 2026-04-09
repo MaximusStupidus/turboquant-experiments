@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>TurboQuant Experiments — Project Design</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="_style.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">TurboQuant Experiments — Project Design</h1>
+</header>
+<h1 id="turboquant-experiments-project-design">TurboQuant Experiments — Project Design</h1>
+<p><strong>Status:</strong> Draft, awaiting user review. <strong>Date:</strong> 2026-04-08 <strong>Owner:</strong> Ojas (with supervisor pairing)</p>
+<hr />
+<h2 id="purpose">1. Purpose</h2>
+<p>Run a pair of comparative benchmarks that apply <strong>TurboQuant</strong> (a KV-cache quantization method based on random projection followed by bit-quantization) to two different autoregressive transformer models:</p>
+<ul>
+<li><strong>Part 1:</strong> <code>meta-llama/Llama-3.1-8B-Instruct</code> (text generation).</li>
+<li><strong>Part 2:</strong> <code>microsoft/VibeVoice-1.5B</code> (autoregressive TTS — a transformer language model whose vocabulary is audio tokens).</li>
+</ul>
+<p>Both parts are open-sourced as a single public repository so that anyone can vet, reproduce, and extend the results.</p>
+<h2 id="priority-order-the-most-important-section-in-this-doc">2. Priority order (the most important section in this doc)</h2>
+<p>The owner has explicitly ranked the success criteria, in this order:</p>
+<ol type="1">
+<li><strong>Learning-first</strong> — by the end of part 1, the owner must be able to explain TurboQuant, KV caches, and the experimental results in their own words to a smart friend. The artifact is the <em>explanation</em>; code is there to back it up.</li>
+<li><strong>Benchmark-first</strong> — multiple quantization configurations measured rigorously on standard evals (perplexity on WikiText, latency, memory, KV cache memory specifically), with clean plots.</li>
+<li><strong>Reproducibility-first</strong> — the repo must be runnable end-to-end on a fresh RunPod box with one command, producing the same numbers.</li>
+</ol>
+<p>These are pursued in this order, not in parallel. When any of the three are in tension, <strong>learning wins, then benchmark, then reproducibility.</strong> Specifically: shipping a flashier benchmark at the cost of the owner’s understanding is <em>not</em> acceptable.</p>
+<h3 id="the-discipline-that-protects-priority-1-writing-checkpoint-gates">The discipline that protects priority 1: writing-checkpoint gates</h3>
+<p>Every phase ends with a markdown writeup in the owner’s own words, committed to the repo, before the next phase begins. If the writeup can’t be written, the phase isn’t done. This rule is non-negotiable for the duration of the project. The supervisor will enforce it even when it feels inconvenient — that is the supervisor’s primary job.</p>
+<h3 id="compute-philosophy-dont-optimize-for-frugality-optimize-for-learning">Compute philosophy: don’t optimize for frugality, optimize for learning</h3>
+<p>Compute cost is <strong>explicitly not a primary constraint</strong> on this project. If renting a GPU accelerates learning — by letting us inspect the <em>real</em> Llama-3.1-8B instead of a smaller stand-in, by letting us iterate faster, by letting us actually <em>see</em> the numbers we’re trying to understand — then we rent the GPU. Spending $5, $50, or $200 on GPU time to remove a friction that would otherwise compromise understanding is a good trade. The owner has explicitly said: <em>“Learning can have good cost.”</em></p>
+<p>What we still keep, because it’s hygiene rather than frugality: - <strong>Don’t leave pods idle.</strong> Shut them down when not actively in use. A pod that’s running but unattended is wasted money for zero learning. - <strong>Know what you’re about to run before you start the meter.</strong> Scripts are tested on the smallest viable setup before they’re launched on a big GPU. Not because the big GPU is expensive, but because debugging on the big GPU is <em>slower</em> (longer iteration loops, more state to manage) and the friction itself slows learning. - <strong>Pick the right GPU for the task, not the biggest available.</strong> If the workload fits on an A100 40GB, an H100 is wasted overhead.</p>
+<p>The owner’s MacBook is <em>not expected</em> to run the real models. It will be used for editing code, reading, writing notes, and small CPU-only sanity checks. Anything involving Llama-3.1-8B inference happens on a rented GPU.</p>
+<h2 id="background-context-the-owner-brought-in">3. Background context the owner brought in</h2>
+<p>Recorded so future contributors know the starting point this plan was designed around:</p>
+<ul>
+<li><strong>TurboQuant familiarity:</strong> “Heard the name, knows it’s something that makes models smaller/faster, hasn’t read the paper yet.” → phase 0 must teach the technique from first principles, not assume prior reading.</li>
+<li><strong>Transformer internals familiarity:</strong> Knows transformers use attention and there’s a thing called KV cache, but couldn’t derive <em>why</em> the cache exists from first principles. → phase 0 derives this explicitly.</li>
+<li><strong>PyTorch / HF / remote-GPU familiarity:</strong> Has used HuggingFace at the pipeline/API level, hasn’t really written PyTorch or touched model internals, has not used a rented GPU before. → first PyTorch code is small (~50 lines) and runs locally before any GPU is rented.</li>
+<li><strong>GPU access:</strong> RunPod account with billing already set up.</li>
+</ul>
+<h2 id="repository-structure">4. Repository structure</h2>
+<p>One repo, both parts. The intentional shape is <strong>flat and minimal</strong> right now — only the things we already know we need. The internal structure inside each part-subfolder is deliberately <em>not</em> fully specified, because we don’t yet know what shape it will want until we’ve worked inside a RunPod pod for a few hours. We will add directories when the work needs them, not before.</p>
+<pre><code>turboquant-experiments/
+├── README.md                            # Top-level explainer, written last (phase 4)
+├── pyproject.toml                       # uv-managed, see §5
+│
+├── notes/                               # Owner&#39;s own-words writeups (gated checkpoints)
+│   ├── 00-foundations.md                # Phase 0 deliverable (already drafted)
+│   ├── 01-kv-cache-reality.md           # Phase 1 deliverable
+│   ├── 02-what-im-measuring.md          # Phase 2 deliverable
+│   ├── 03-results.md                    # Phase 3 deliverable
+│   └── scratch/                         # Pedagogical scripts/plots, not project code
+│       ├── jl_demo.py
+│       ├── jl_demo.png
+│       ├── outlier_demo.py
+│       └── outlier_demo.png
+│
+├── language-model-improvements/         # Part 1: TurboQuant on Llama-3.1-8B
+│   ├── scripts/                         # Will be populated phase-by-phase
+│   ├── results/                         # CSV/JSON outputs synced back from pods
+│   └── README.md                        # Part 1 reproduction instructions
+│
+├── speech-tts-improvements/             # Part 2: TurboQuant on VibeVoice
+│   └── (empty until part 1 ships)
+│
+└── docs/
+    └── superpowers/specs/
+        └── 2026-04-08-turboquant-experiments-design.md   # this file</code></pre>
+<p><strong>Naming:</strong> Both part-folders are kebab-case and end in <code>-improvements</code>. Parallel structure on purpose, so they read as a pair.</p>
+<p><strong>Why one repo:</strong> the conceptual work in part 1 (KV cache, TurboQuant) is the foundation for part 2, and a single artifact tells the whole story. <code>notes/</code> is shared across both parts.</p>
+<p><strong>Why the internal structure is barely specified:</strong> I had originally listed three pre-named scripts inside <code>language-model-improvements/scripts/</code>. I removed that. Listing files we haven’t written yet creates fake structure that the real work will then have to fight against. We will add files when phase 1 actually demands them. If phase 1 turns out to want notebooks instead of scripts, or a <code>kernels/</code> subfolder, or anything else — we add it then, not now.</p>
+<h2 id="a.-runpod-workflow-where-the-code-lives-where-the-work-happens">4a. RunPod workflow — where the code lives, where the work happens</h2>
+<p>This is the section that actually needs thinking-through, since the directory tree above is a <em>local-machine</em> view but most of the real work runs inside a rented pod. Here’s how the two layers fit together.</p>
+<p><strong>Source of truth: GitHub.</strong> The repo lives on GitHub (created at the start of phase 1, kept private until phase 4 if you prefer). The owner’s MacBook has a clone for editing, reading, writing notes, and committing. RunPod pods get the code by cloning the same repo. Nothing important lives only on the pod.</p>
+<p><strong>Pod lifecycle (the loop we’ll actually run during phases 1–3):</strong></p>
+<ol type="1">
+<li>Spin up a fresh pod with the right GPU and a PyTorch image.</li>
+<li><code>git clone &lt;the-repo&gt;</code> inside the pod.</li>
+<li><code>uv sync</code> to install the locked Python environment.</li>
+<li>Run the phase’s script. Output files (CSV, JSON, plots) are written into <code>language-model-improvements/results/</code> <em>inside the pod</em>.</li>
+<li>Either <code>git add</code> + <code>git commit</code> + <code>git push</code> from inside the pod (cleanest, treats the pod as a normal dev box), <strong>or</strong> scp the results files back to the laptop and commit from there. We’ll pick whichever feels less clunky after the first phase 1 session.</li>
+<li><strong>Shut down the pod immediately when done.</strong> No “I’ll come back to it later” — that’s how idle-pod bills happen.</li>
+</ol>
+<p><strong>What the owner edits where:</strong> - <strong>Notes / writeups (<code>notes/*.md</code>):</strong> edit on the laptop. They’re reading and reflection, not GPU work. - <strong>Scripts (<code>language-model-improvements/scripts/*.py</code>):</strong> can be edited <em>either</em> on the laptop (then <code>git pull</code> on the pod) or directly on the pod via VS Code Remote / Cursor Remote / SSH. We’ll see which feels better in phase 1. The “edit on laptop, run on pod” loop has higher latency but cleaner state; the “edit directly on pod” loop is faster but the pod is ephemeral and you have to remember to commit before shutdown. - <strong>Results (<code>language-model-improvements/results/</code>):</strong> generated on the pod, synced back to git so the laptop sees them.</p>
+<p><strong>One concrete decision for now, others deferred until phase 1 reveals them:</strong> - <strong>Decision:</strong> the repo is the source of truth for <em>all</em> code and <em>all</em> results. Pods are ephemeral compute environments, not storage. If a pod dies and a result wasn’t committed, the result is lost — and that’s an acceptable risk because we can re-run. - <strong>Deferred:</strong> which exact RunPod GPU to use, which exact base image, whether to use VS Code Remote vs. raw SSH vs. JupyterLab inside the pod, whether large weight files should be cached on a RunPod network volume vs. re-downloaded each session. All of these are “we’ll find out the right answer by trying it” questions that don’t deserve to be settled in this design doc.</p>
+<p>What the owner needs to know going into phase 1: <strong>the laptop is for thinking, the pod is for running, the GitHub repo is the bridge.</strong> That’s it.</p>
+<h2 id="tooling-decisions">5. Tooling decisions</h2>
+<ul>
+<li><strong>Python environment:</strong> <code>uv</code>. Reason: fast, reproducible, identical behavior on the owner’s laptop and on the rented RunPod box, one less environment to debug at 11pm. No conda, no plain pip.</li>
+<li><strong>Source control:</strong> git. Public GitHub repo (created at the start of phase 1, not now, to avoid premature publication of incomplete work).</li>
+<li><strong>Plotting:</strong> matplotlib. Reason: lowest dependency footprint, already installed, plots reproduce identically across machines.</li>
+<li><strong>No experiment-tracking SaaS</strong> (W&amp;B, MLflow, etc.) for v1. CSV/JSON in <code>results/</code> is enough and keeps the repo self-contained.</li>
+</ul>
+<h2 id="phase-plan">6. Phase plan</h2>
+<p>Phases are sequential. Each phase has a <strong>goal</strong>, an <strong>output</strong> (code + a writing checkpoint), and a <strong>gate</strong> that must be passed before the next phase begins.</p>
+<h3 id="phase-0-foundations-no-gpu-no-code-as-project">Phase 0 — Foundations (no GPU, no code-as-project)</h3>
+<p><strong>Goal:</strong> Owner can explain on a whiteboard (a) the attention equation, (b) why autoregressive decoding caches K and V, (c) what quantization is and why models tolerate it, and (d) what TurboQuant does and why it’s a particularly good fit for KV caches.</p>
+<p><strong>Output:</strong> <code>notes/00-foundations.md</code> — already drafted in this conversation, includes inline <code>[Note : ...]</code> sharpenings from supervisor review.</p>
+<p><strong>Status:</strong> ✅ Passing.</p>
+<h3 id="phase-1-first-contact-with-the-real-model-runpod-from-the-start">Phase 1 — First contact with the real model (RunPod from the start)</h3>
+<p><strong>Goal:</strong> Owner writes ~50 lines of PyTorch that load <strong>the actual Llama-3.1-8B-Instruct</strong> on a rented GPU, run a forward pass, and <strong>print the KV cache tensor shapes and memory footprint with their own eyes</strong>, on the real model — not a smaller stand-in.</p>
+<p>We use a real GPU from day one of phase 1 because (a) the laptop almost certainly cannot load Llama-3.1-8B comfortably, (b) inspecting a stand-in model would teach the wrong shapes and the wrong intuitions, and (c) the friction of “make it work locally first” buys us nothing — the whole point is to see the <em>actual numbers</em> on the <em>actual model</em> we’ll use throughout the project.</p>
+<p><strong>Outputs:</strong> - <code>language-model-improvements/scripts/01_inspect_kv_cache.py</code> — loads <code>meta-llama/Llama-3.1-8B-Instruct</code>, runs one forward pass with <code>use_cache=True</code>, prints the structure of <code>past_key_values</code>, computes the per-token memory and total memory, compares to the model weight memory, prints typical value distributions for K and V (mean, std, min, max, p99.9 — to make the outlier-channel story concrete on real data). - <code>notes/01-kv-cache-reality.md</code> — owner’s writeup of what the script printed and what (if anything) surprised them. The “surprise” prompt is intentional: it forces a comparison of mental model to reality.</p>
+<p><strong>Why this phase exists:</strong> This is the “aha” moment. Seeing on the terminal that a 2k-context KV cache rivals the model weight memory — <em>on the real model</em> — makes the entire TurboQuant motivation visceral in a way no paper can.</p>
+<p><strong>RunPod hygiene for phase 1:</strong> A small GPU (A100 40GB or even a 24GB-class card) is plenty for inspecting Llama-3.1-8B at modest context lengths. Pod is launched when we’re ready to run, shut down when we’re done editing notes. Total wall time on the meter for phase 1 is expected to be small — maybe an hour or two of active GPU time across the phase — but we are <em>not</em> optimizing this number. If it takes longer, it takes longer.</p>
+<p><strong>Gate:</strong> <code>notes/01-kv-cache-reality.md</code> written and reviewed.</p>
+<h3 id="phase-2-eval-harness-rented-gpu">Phase 2 — Eval harness (rented GPU)</h3>
+<p><strong>Goal:</strong> Build the <strong>baseline measurement infrastructure before introducing any quantization</strong>. A script that takes a model, runs it on a fixed slice of WikiText-2, and outputs:</p>
+<ol type="1">
+<li>Perplexity</li>
+<li>Peak GPU memory</li>
+<li>Tokens per second (generation throughput)</li>
+<li><strong>KV cache memory specifically</strong> (separated from model-weight memory)</li>
+</ol>
+<p>The script must be deterministic (fixed seed, fixed dataset slice) and re-runnable.</p>
+<p><strong>Outputs:</strong> - <code>language-model-improvements/scripts/02_baseline_eval.py</code> - <code>language-model-improvements/results/baseline.json</code> — fp16 Llama-3.1-8B numbers - <code>notes/02-what-im-measuring.md</code> — owner explains in their own words <em>why each metric matters</em> and <em>what it would mean for it to go up or down</em>. This is a writing checkpoint specifically because misunderstanding what a metric measures is the most common failure mode in benchmarking.</p>
+<p><strong>Discipline rule (load-bearing):</strong> <strong>The eval harness must be frozen before phase 3 begins.</strong> No tweaks, no metric additions, no dataset changes once we’ve seen the first set of TurboQuant numbers — otherwise our before/after numbers are not comparable. If we discover the harness is wrong mid-experiment, we re-run <em>all</em> baselines with the corrected harness, not just the new variant.</p>
+<p><strong>Gate:</strong> <code>notes/02-what-im-measuring.md</code> written and reviewed, baseline JSON checked in.</p>
+<h3 id="phase-3-apply-turboquant-rented-gpu">Phase 3 — Apply TurboQuant (rented GPU)</h3>
+<p><strong>Goal:</strong> Run the same harness with TurboQuant applied to the KV cache, at multiple quantization configurations. Compare against fp16 baseline and at least one naive baseline (e.g. naive int8 KV cache) so TurboQuant has something to look better than (or worse than — we don’t pre-decide which).</p>
+<p><strong>Outputs:</strong> - <code>language-model-improvements/scripts/03_turboquant_eval.py</code> - <code>language-model-improvements/results/turboquant_sweep.json</code> - Plots of perplexity vs. KV memory tradeoff for each config - <code>notes/03-results.md</code> — owner’s interpretation of the numbers in their own words. <strong>Numbers without interpretation don’t count.</strong> If a result is surprising, the writeup must engage with the surprise rather than wave it away.</p>
+<p><strong>RunPod hygiene (specific to this phase):</strong> - Before launching a long sweep, dry-run the script on a single config to make sure it produces the expected output format. This is about iteration speed, not cost. - Walk in with a written list of runs to perform — not because we’re rationing GPU time, but because “what was I about to test?” is a real failure mode after a context-switch. - Pod is shut down when the sweep finishes and the results are downloaded. No leaving pods running idle overnight. - <strong>No dollar cap.</strong> If a config is interesting and worth re-running with different parameters, we re-run it. If the sweep takes 8 hours of H100 time instead of 2, that’s fine.</p>
+<p><strong>Mindset rule for this phase (recorded because of an exchange in phase 0):</strong> Trust no claim — supervisor’s, paper’s, or library’s — about what numbers to expect, until it’s been measured on this exact setup. If the numbers look weird, the response is “huh, why?” not “we must be running it wrong, the paper says it works.” Sometimes the paper is wrong on a particular setup. Pre-committing to this mindset before we see results.</p>
+<p><strong>Gate:</strong> <code>notes/03-results.md</code> written and reviewed.</p>
+<h3 id="phase-4-write-up-repo-polish">Phase 4 — Write-up &amp; repo polish</h3>
+<p><strong>Goal:</strong> Public-facing README that someone unfamiliar with TurboQuant can read and understand. Reproducible from a fresh clone.</p>
+<p><strong>Outputs:</strong> - <code>README.md</code> (top-level) - <code>language-model-improvements/README.md</code> (reproduction instructions) - Polished plots - Optional short blog-post-style explainer</p>
+<p><strong>Gate:</strong> Repo public; the owner can verbally walk someone through the project end-to-end without notes.</p>
+<h3 id="hard-rule-between-part-1-and-part-2">Hard rule between part 1 and part 2</h3>
+<p><strong>We do not start part 2 until part 1 is fully shipped — repo public, README written, owner can explain the results.</strong> Resist the temptation to start part 2 “in parallel because it’s exciting.” Part 2 will go faster <em>because</em> part 1 is finished, not despite it.</p>
+<h2 id="decisions-deliberately-deferred">7. Decisions deliberately deferred</h2>
+<p>These are decisions we are choosing not to make right now because they require information we don’t have yet. They are recorded so future-us doesn’t accidentally settle them by drift.</p>
+<ul>
+<li><strong>Which TurboQuant implementation/library to use</strong> — to be decided at the start of phase 3 after surveying the landscape (HF integration? a research repo? hand-roll a minimal version for the learning?).</li>
+<li><strong>Which exact quantization configurations to sweep</strong> — depends on what the chosen library exposes.</li>
+<li><strong>Choice of GPU on RunPod</strong> (A100 40GB vs H100 vs 4090) — depends on what fits Llama-3.1-8B + a few-thousand-token KV cache comfortably; will be decided at the start of phase 3 with a one-line memory calculation.</li>
+<li><strong>Whether to also include MMLU or another downstream eval</strong> in addition to perplexity — to be decided at the start of phase 2; default is “perplexity only for v1, add MMLU only if time and budget allow.”</li>
+<li><strong>Part 2 details (VibeVoice setup, audio quality metrics, voice-similarity measurement)</strong> — fully deferred until part 1 ships.</li>
+</ul>
+<h2 id="out-of-scope-for-v1">8. Out of scope for v1</h2>
+<p>To prevent scope creep, these are explicitly <em>not</em> part of this project:</p>
+<ul>
+<li>Training or fine-tuning any model. We only measure inference.</li>
+<li>Comparing TurboQuant against every other KV-cache quantization method. We compare against fp16 baseline and one naive baseline. That’s enough for the first version.</li>
+<li>Multi-GPU experiments. Single-GPU only.</li>
+<li>Custom CUDA kernels. We use whatever the chosen library provides.</li>
+<li>Throughput optimization beyond what falls out of measurement. We measure tokens/sec but we do not chase it.</li>
+</ul>
+<h2 id="risk-register">9. Risk register</h2>
+<p>Things most likely to go wrong, and the pre-committed response.</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Risk</th>
+<th>Likelihood</th>
+<th>Pre-committed response</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>TurboQuant library doesn’t exist in usable form for Llama-3.1-8B</td>
+<td>Medium</td>
+<td>Hand-roll a minimal “project + bit-quantize” wrapper around HF’s KV cache. The math is simple; the engineering is the hard part. Treat the hand-roll as a <em>learning win</em> if it happens.</td>
+</tr>
+<tr class="even">
+<td>Numbers don’t show TurboQuant winning</td>
+<td>Medium</td>
+<td>Report honestly. A negative result is still a publishable result and is more useful to the community than a fake positive. The priority is <em>understanding</em>, not <em>advocacy</em>.</td>
+</tr>
+<tr class="odd">
+<td>Owner’s laptop can’t load Llama-3.1-8B</td>
+<td>Certain (assumed up front)</td>
+<td>Not a risk, just a fact. All real model work happens on RunPod from phase 1 onwards. The laptop is for editing, reading, writing notes, and CPU-only sanity checks.</td>
+</tr>
+<tr class="even">
+<td>RunPod costs higher than expected</td>
+<td>Possible</td>
+<td>Not treated as a problem in itself. We accept the cost when it buys learning. The only thing we <em>do</em> avoid is leaving pods idle, because idle pods buy zero learning.</td>
+</tr>
+<tr class="odd">
+<td>Owner’s understanding outpaces the writing checkpoints</td>
+<td>Medium</td>
+<td>Skipping a checkpoint is allowed <em>only</em> via an explicit “I am consciously overriding this gate” statement, recorded in this design doc as an amendment. No drift-based skipping.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="open-items-for-owner-review">10. Open items for owner review</h2>
+<p>Before this design is locked, please react to the following — push back on anything that feels wrong:</p>
+<ol type="1">
+<li>Repo structure (§4) — does the <code>language-model-improvements/</code> + <code>speech-tts-improvements/</code> + shared <code>notes/</code> layout make sense? And does the §4a RunPod workflow section answer your “I’m not sure how the internals will look” concern, or does something specific still feel undefined?</li>
+<li>Tooling (§5) — <code>uv</code> for Python, matplotlib for plots, no experiment tracker. OK?</li>
+<li>Phase gates (§6) — every phase has a markdown writeup gate. You already approved this in conversation but I’m re-confirming it’s recorded here.</li>
+<li>Compute philosophy (§2, “Compute philosophy”) — confirm I captured “don’t optimize for frugality, optimize for learning” the way you meant it.</li>
+<li>Out-of-scope list (§8) — anything you’d add or remove?</li>
+<li>Risk register (§9) — anything obvious I missed?</li>
+</ol>
+<p>Once you’ve reviewed and approved (or amended) this doc, the next step is to invoke the writing-plans skill and produce a detailed implementation plan for <strong>phase 1 only</strong> (we’ll write subsequent phase plans as we get to them — don’t pre-plan phases we haven’t started).</p>
+</body>
+</html>
