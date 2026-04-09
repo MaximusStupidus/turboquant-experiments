@@ -28,6 +28,16 @@ class _Tee:
             st.flush()
 
 
+def _get_kv_layer(pkv, layer_idx):
+    """Extract (K, V) tensors from layer_idx, handling all cache formats."""
+    if hasattr(pkv, 'key_cache'):
+        return pkv.key_cache[layer_idx], pkv.value_cache[layer_idx]
+    if hasattr(pkv, 'to_legacy_cache'):
+        legacy = pkv.to_legacy_cache()
+        return legacy[layer_idx]
+    return pkv[layer_idx]
+
+
 def report_config(model):
     cfg = model.config
     head_dim = cfg.hidden_size // cfg.num_attention_heads
@@ -75,16 +85,9 @@ def inspect_kv_cache_structure(model, tokenizer):
     print(f"  type              : {type(pkv).__name__}")
     print(f"  num layers        : {len(pkv)}")
 
-    # Handle both tuple-of-tuples and DynamicCache formats
-    if hasattr(pkv, 'key_cache'):
-        # DynamicCache (newer transformers)
-        k0 = pkv.key_cache[0]
-        v0 = pkv.value_cache[0]
-        print(f"  format            : DynamicCache")
-    else:
-        # Tuple of (K, V) tuples (older format)
-        k0, v0 = pkv[0]
-        print(f"  format            : tuple-of-tuples")
+    # Handle DynamicCache, legacy tuple, or other formats
+    k0, v0 = _get_kv_layer(pkv, 0)
+    fmt = type(pkv).__name__
 
     print(f"  K[layer=0] shape  : {tuple(k0.shape)}")
     print(f"  K[layer=0] dtype  : {k0.dtype}")
@@ -129,12 +132,7 @@ def report_kv_memory_sweep(cfg, head_dim, weight_bytes):
 
 def report_value_distributions(pkv, layer_idx: int, num_layers: int):
     """Print K and V per-channel value statistics for one chosen layer."""
-    # Handle both DynamicCache and tuple formats
-    if hasattr(pkv, 'key_cache'):
-        k = pkv.key_cache[layer_idx]
-        v = pkv.value_cache[layer_idx]
-    else:
-        k, v = pkv[layer_idx]
+    k, v = _get_kv_layer(pkv, layer_idx)
 
     # Shape is (batch, n_kv_heads, seq_len, head_dim).
     # Flatten to (n_tokens, n_channels) where n_channels = n_kv_heads * head_dim.
