@@ -12,18 +12,25 @@ Tracking problems encountered during the experiment, their diagnosis, and resolu
 
 **Symptom:** KIVI 4-bit and KIVI 2-bit both report perplexity = 6.57, identical to the fp16 baseline. This is impossible — 2-bit quantization must introduce some quality loss.
 
-**Initial diagnosis (WRONG):** Originally thought the sliding-window eval doesn't use the cache because "nothing gets stored and read back." This was incorrect — transformers models call `cache.update()` during every forward pass including single-pass prefill, and both TurboQuant and KIVI dequantize on every `update()` call. Both should affect perplexity even in single-pass mode.
+**Diagnosis 1 (WRONG):** Originally thought the sliding-window eval doesn't use the cache because "nothing gets stored and read back." Incorrect — transformers calls `cache.update()` during every forward pass.
 
-**Updated diagnosis (after reading source code):** Both `TurboQuantCache` and HF `QuantizedCache` follow the same pattern: quantize on store, dequantize on every read via `update()`. The model calls `update()` at each layer during prefill, so the attention layer receives dequantized (lossy) K/V values. TurboQuant clearly shows this effect (PPL 6.85/7.44/12.46 vs 6.57 baseline). KIVI shows zero effect (PPL 6.57/6.57), which means **something is preventing KIVI's quantization from actually engaging.**
+**Diagnosis 2 (WRONG):** After reading source code, thought both TurboQuant and KIVI dequantize on `update()` and return lossy values. The source code *appeared* to show this pattern for both.
 
-**Likely root causes (not yet confirmed):**
-1. The `optimum-quanto` backend may not be actually quantizing — the object is created without error but the quantize step is a no-op due to a config/version mismatch.
-2. The `residual_length` parameter may default to something ≥ 2048, meaning the entire window fits in the residual buffer and nothing ever gets quantized.
-3. A subtle API issue where the QuantizedCache is created but the model creates a separate internal cache and uses that instead.
+**Diagnosis 3 (CONFIRMED — root cause found via debug_kivi.py v4):** KIVI's `QuantizedCache.update()` method **returns the original unmodified fp16 values**, not the dequantized lossy values. The quantized representation is stored internally (for memory savings), but the values returned to the attention layer are the exact originals. This means the attention computation is always fp16-precise, and perplexity is bit-identical to the baseline.
 
-**Investigation needed:** Add debug logging inside the KIVI factory to check (a) whether `_quantized_keys` is ever populated (non-empty), and (b) what the residual_length is set to.
+This is **by design**: KIVI's purpose is to reduce memory during long-context *serving*, where cached values from step N are read back at step N+K via `_dequantize`. In a single forward pass, the values are used immediately (the return value of `update()`), so the quantized copy is never read back and has no effect on computation.
 
-**Status:** Open — root cause not yet confirmed. TurboQuant numbers are valid. KIVI numbers are invalid.
+TurboQuant, by contrast, modifies the K/V values *on write* (project→quantize→dequantize→return lossy values), so the attention layer sees lossy values even in single-pass mode. This is why TurboQuant shows a perplexity effect and KIVI does not.
+
+**Implications:**
+1. Our perplexity eval (single-pass per window) **cannot measure KIVI's quality impact**. Autoregressive token-by-token generation is required.
+2. KIVI's memory numbers (18.06 GB, 18.00 GB) ARE valid — the cache IS stored in fewer bits.
+3. TurboQuant's perplexity numbers (6.85, 7.44, 12.46) ARE valid.
+4. The current comparison is **not apples-to-apples** — TurboQuant is penalized (showing loss) while KIVI is not (showing zero loss), even though both would show loss in real autoregressive use.
+
+**Fix needed:** Rewrite perplexity eval to use autoregressive generation (token-by-token), where each step reads the dequantized cache from previous steps. This is the only way to measure KIVI's quality tradeoff and produce a fair comparison.
+
+**Status:** Root cause confirmed. Fix pending — needs autoregressive eval rewrite.
 
 ---
 
