@@ -41,16 +41,10 @@ def collect_data(summary):
     """Extract names, values, and colors from summary for plotting."""
     entries = []
 
-    if summary["baseline"]:
-        entries.append({
-            "name": "fp16\n(baseline)",
-            "ppl": summary["baseline"]["perplexity"]["value"],
-            "mem_gb": summary["baseline"]["memory"]["peak_gpu_bytes"] / 1e9,
-            "tok_s": summary["baseline"]["throughput"]["tokens_per_sec"],
-            "color": "#4CAF50",
-        })
+    # Handle both old format (baseline + experiments) and new (all_results)
+    results_list = summary.get("all_results", summary.get("experiments", []))
 
-    for r in summary["experiments"]:
+    for r in results_list:
         entries.append({
             "name": r["config_name"].replace(" ", "\n"),
             "ppl": r["perplexity"]["value"],

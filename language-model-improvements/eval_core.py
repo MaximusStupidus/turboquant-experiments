@@ -96,6 +96,98 @@ def eval_perplexity(model, input_ids, stride: int = 512, max_length: int = 2048,
     return ppl, total_nlls, token_counts, peak_mem
 
 
+def eval_perplexity_autoregressive(model, input_ids, cache_factory=None,
+                                   prefill_len: int = 128, max_eval_tokens: int = 2048):
+    """Autoregressive perplexity evaluation — token by token.
+
+    This is the CORRECT way to measure KV cache quantization effects.
+    The key difference from eval_perplexity (sliding-window):
+
+    Sliding-window: feeds 2048 tokens in one shot. The cache is written
+    but never read back within the same pass. Quantization methods like
+    KIVI that only affect read-back show ZERO quality impact.
+
+    Autoregressive: feeds tokens one at a time after an initial prefill.
+    Each step reads the cached K/V from ALL previous steps. If the cache
+    stores quantized values, the model reads lossy values, and perplexity
+    reflects the real quality impact.
+
+    How it works:
+    1. Prefill: feed first `prefill_len` tokens in one shot → fills the cache.
+       We don't score these (the cache isn't being read back yet during prefill).
+    2. Autoregressive loop: feed one token at a time.
+       - Model reads cached K/V from all previous tokens (quantized if applicable)
+       - Model outputs logits predicting the next token
+       - We score the prediction against the actual next token (NLL)
+       - New token's K/V gets added to the cache
+
+    Args:
+        model: the HF causal LM
+        input_ids: 1-D tensor of token ids
+        cache_factory: callable returning a fresh cache, or None for fp16
+        prefill_len: tokens to feed in one shot to initialize cache
+        max_eval_tokens: total tokens to use (prefill + autoregressive)
+
+    Returns:
+        (perplexity, total_nll, tokens_scored, peak_mem_bytes)
+    """
+    import math
+
+    device = model.device
+    seq_len = min(input_ids.shape[0], max_eval_tokens)
+    input_ids = input_ids[:seq_len]
+
+    torch.cuda.reset_peak_memory_stats()
+
+    # Create cache
+    cache = cache_factory() if cache_factory is not None else None
+
+    # Step 1: Prefill — feed first prefill_len tokens in one shot
+    prefill_ids = input_ids[:prefill_len].unsqueeze(0).to(device)
+    with torch.no_grad():
+        out = model(prefill_ids, past_key_values=cache, use_cache=True)
+    cache = out.past_key_values
+
+    # We CAN score tokens 1..prefill_len from the prefill output, but
+    # those scores are unaffected by cache quantization (cache is being
+    # written for the first time, not read back). For a fair comparison
+    # we only score the autoregressive tokens.
+
+    total_nll = 0.0
+    tokens_scored = 0
+
+    # Step 2: Autoregressive — feed one token at a time
+    # At step i, we feed token[i] and the model predicts token[i+1].
+    # We score: was token[i+1] predicted correctly?
+    for i in range(prefill_len, seq_len - 1):
+        input_token = input_ids[i].unsqueeze(0).unsqueeze(0).to(device)  # shape (1, 1)
+
+        with torch.no_grad():
+            out = model(input_token, past_key_values=cache, use_cache=True)
+        cache = out.past_key_values
+
+        # out.logits shape: (1, 1, vocab_size)
+        # This predicts the token at position i+1
+        logits = out.logits[0, 0].float()  # (vocab_size,)
+        log_probs = torch.nn.functional.log_softmax(logits, dim=-1)
+
+        # The actual next token
+        target = input_ids[i + 1].item()
+        nll = -log_probs[target].item()
+
+        total_nll += nll
+        tokens_scored += 1
+
+        # Progress print every 256 tokens
+        if tokens_scored % 256 == 0:
+            running_ppl = math.exp(total_nll / tokens_scored)
+            print(f"    scored {tokens_scored} tokens, running PPL: {running_ppl:.2f}")
+
+    peak_mem = torch.cuda.max_memory_allocated()
+    ppl = math.exp(total_nll / tokens_scored) if tokens_scored > 0 else float('inf')
+    return ppl, total_nll, tokens_scored, peak_mem
+
+
 def eval_generation_throughput(
     model, tokenizer, prompt: str,
     max_new_tokens: int = 128, num_runs: int = 3,

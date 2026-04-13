@@ -36,7 +36,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from language_model_improvements.eval_core import (
     load_wikitext2_test,
-    eval_perplexity,
+    eval_perplexity_autoregressive,
     eval_generation_throughput,
 )
 from language_model_improvements.eval_utils import format_bytes
@@ -94,11 +94,12 @@ def get_configs(model_config):
     - TQ 3-bit is the default/recommended setting from the package
     """
     return [
-        ("KIVI 4-bit",       "kivi_4bit.json",       make_kivi_factory(model_config, nbits=4)),
-        ("KIVI 2-bit",       "kivi_2bit.json",       make_kivi_factory(model_config, nbits=2)),
-        ("TurboQuant 4-bit", "turboquant_4bit.json", make_turboquant_factory(bits=4)),
-        ("TurboQuant 3-bit", "turboquant_3bit.json", make_turboquant_factory(bits=3)),
-        ("TurboQuant 2-bit", "turboquant_2bit.json", make_turboquant_factory(bits=2)),
+        ("fp16 (baseline)",  "baseline_autoreg.json", None),  # no cache factory = default fp16
+        ("KIVI 4-bit",       "kivi_4bit.json",        make_kivi_factory(model_config, nbits=4)),
+        ("KIVI 2-bit",       "kivi_2bit.json",        make_kivi_factory(model_config, nbits=2)),
+        ("TurboQuant 4-bit", "turboquant_4bit.json",  make_turboquant_factory(bits=4)),
+        ("TurboQuant 3-bit", "turboquant_3bit.json",  make_turboquant_factory(bits=3)),
+        ("TurboQuant 2-bit", "turboquant_2bit.json",  make_turboquant_factory(bits=2)),
     ]
 
 
@@ -114,16 +115,15 @@ def run_single_config(model, tokenizer, input_ids, config_name, cache_factory, a
     head_dim = cfg.hidden_size // cfg.num_attention_heads
     weight_bytes = sum(p.numel() * p.element_size() for p in model.parameters())
 
-    # ── Perplexity ──
-    print("  Evaluating perplexity...")
+    # ── Perplexity (autoregressive — correct for cache quantization) ──
+    print("  Evaluating perplexity (autoregressive)...")
     try:
-        ppl, nlls, tcounts, peak_mem = eval_perplexity(
+        ppl, total_nll, total_scored, peak_mem = eval_perplexity_autoregressive(
             model, input_ids,
-            stride=args.stride,
-            max_length=args.max_length,
             cache_factory=cache_factory,
+            prefill_len=args.prefill_len,
+            max_eval_tokens=args.max_eval_tokens,
         )
-        total_scored = sum(tcounts)
         print(f"  perplexity: {ppl:.4f}")
         print(f"  tokens scored: {total_scored:,}")
         print(f"  peak GPU memory: {format_bytes(peak_mem)}")
@@ -160,9 +160,9 @@ def run_single_config(model, tokenizer, input_ids, config_name, cache_factory, a
             "device": torch.cuda.get_device_name(0),
             "torch_version": torch.__version__,
             "seed": args.seed,
-            "max_tokens": args.max_tokens,
-            "stride": args.stride,
-            "max_length": args.max_length,
+            "max_eval_tokens": args.max_eval_tokens,
+            "prefill_len": args.prefill_len,
+            "eval_mode": "autoregressive",
         },
         "perplexity": {
             "value": round(ppl, 4) if ppl is not None else None,
@@ -190,9 +190,12 @@ def main():
     parser = argparse.ArgumentParser(description="Phase 3: TurboQuant + KIVI eval sweep")
     parser.add_argument("--model", default="NousResearch/Meta-Llama-3.1-8B-Instruct")
     parser.add_argument("--output-dir", default="language-model-improvements/results")
-    parser.add_argument("--max-tokens", type=int, default=32768)
-    parser.add_argument("--stride", type=int, default=512)
-    parser.add_argument("--max-length", type=int, default=2048)
+    parser.add_argument("--max-tokens", type=int, default=32768,
+                        help="Max tokens to load from WikiText-2")
+    parser.add_argument("--max-eval-tokens", type=int, default=2048,
+                        help="Total tokens for autoregressive eval (prefill + scored)")
+    parser.add_argument("--prefill-len", type=int, default=128,
+                        help="Tokens to prefill before autoregressive scoring")
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 
@@ -243,16 +246,8 @@ def main():
         # Free GPU cache between configs to avoid memory buildup
         torch.cuda.empty_cache()
 
-    # ── Load baseline and build summary ──
-    baseline_path = os.path.join(args.output_dir, "baseline.json")
-    if os.path.exists(baseline_path):
-        with open(baseline_path) as f:
-            baseline = json.load(f)
-    else:
-        baseline = None
-        print("\nWARNING: baseline.json not found — summary will lack baseline")
-
-    summary = {"baseline": baseline, "experiments": all_results}
+    # ── Build summary (baseline is now part of the sweep as the first config) ──
+    summary = {"all_results": all_results}
     summary_path = os.path.join(args.output_dir, "summary.json")
     with open(summary_path, "w") as f:
         json.dump(summary, f, indent=2)
@@ -260,14 +255,10 @@ def main():
 
     # ── Print comparison table ──
     print(f"\n{'='*70}")
-    print("COMPARISON TABLE")
+    print("COMPARISON TABLE (autoregressive eval)")
     print(f"{'='*70}")
     print(f"{'Config':<25} {'PPL':>8} {'tok/s':>8} {'Peak Mem':>12}")
     print("-" * 55)
-    if baseline:
-        print(f"{'fp16 (baseline)':<25} {baseline['perplexity']['value']:>8.2f} "
-              f"{baseline['throughput']['tokens_per_sec']:>8.1f} "
-              f"{baseline['memory']['peak_gpu_human']:>12}")
     for r in all_results:
         ppl_s = f"{r['perplexity']['value']:.2f}" if r['perplexity']['value'] else "FAIL"
         tps_s = f"{r['throughput']['tokens_per_sec']:.1f}" if r['throughput']['tokens_per_sec'] else "FAIL"
