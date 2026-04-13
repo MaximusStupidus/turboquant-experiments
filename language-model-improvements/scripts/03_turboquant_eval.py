@@ -68,15 +68,30 @@ def make_kivi_factory(model_config, nbits):
 
 
 def make_turboquant_factory(bits):
-    """Factory for TurboQuant's cache (random projection + bit-quantization).
-
-    This is the method we're testing. It projects K/V vectors with a random
-    matrix (flattening outliers), then bit-quantizes the projected values.
-    The community package uses a single `bits` parameter for both K and V.
-    """
+    """Factory for community TurboQuant cache."""
     def factory():
         from turboquant import TurboQuantCache
         return TurboQuantCache(bits=bits)
+    return factory
+
+
+def make_handrolled_factory(model_config, bits):
+    """Factory for our from-scratch TurboQuant implementation.
+
+    Uses random orthogonal projection + uniform scalar quantization.
+    Should produce similar results to the community package — if it does,
+    our implementation is validated. If it doesn't, we have a bug to find.
+    """
+    def factory():
+        from language_model_improvements.handrolled_turboquant import HandrolledTurboQuantCache
+        return HandrolledTurboQuantCache(
+            num_layers=model_config.num_hidden_layers,
+            num_kv_heads=model_config.num_key_value_heads,
+            head_dim=model_config.hidden_size // model_config.num_attention_heads,
+            bits=bits,
+            device="cuda",
+            dtype=torch.float16,
+        )
     return factory
 
 
@@ -85,21 +100,20 @@ def make_turboquant_factory(bits):
 def get_configs(model_config):
     """The configs we sweep over.
 
-    Two KIVI configs (the naive baseline at 4-bit and 2-bit),
-    three TurboQuant configs (4-bit, 3-bit, 2-bit).
-
-    The critical comparisons are:
-    - KIVI 4-bit vs TQ 4-bit  (same compression, different methods)
-    - KIVI 2-bit vs TQ 2-bit  (same compression, different methods)
-    - TQ 3-bit is the default/recommended setting from the package
+    - fp16 baseline (no compression)
+    - KIVI 4-bit and 2-bit (naive per-channel quantization)
+    - Community TurboQuant at 4/3/2 bit
+    - Our handrolled TurboQuant at 4/2 bit (for validation)
     """
     return [
-        ("fp16 (baseline)",  "baseline_autoreg.json", None),  # no cache factory = default fp16
+        ("fp16 (baseline)",  "baseline_autoreg.json", None),
         ("KIVI 4-bit",       "kivi_4bit.json",        make_kivi_factory(model_config, nbits=4)),
         ("KIVI 2-bit",       "kivi_2bit.json",        make_kivi_factory(model_config, nbits=2)),
         ("TurboQuant 4-bit", "turboquant_4bit.json",  make_turboquant_factory(bits=4)),
         ("TurboQuant 3-bit", "turboquant_3bit.json",  make_turboquant_factory(bits=3)),
         ("TurboQuant 2-bit", "turboquant_2bit.json",  make_turboquant_factory(bits=2)),
+        ("Handrolled 4-bit", "handrolled_4bit.json",  make_handrolled_factory(model_config, bits=4)),
+        ("Handrolled 2-bit", "handrolled_2bit.json",  make_handrolled_factory(model_config, bits=2)),
     ]
 
 
