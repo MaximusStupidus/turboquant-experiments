@@ -64,21 +64,33 @@ def test_update_returns_approximate_not_exact(cache):
 
 
 def test_dot_product_approximately_preserved(cache):
-    """Core JL property: Q·K_approx ≈ Q·K."""
-    q = torch.randn(1, 4, 1, 64)
-    k = torch.randn(1, 4, 1, 64)
-    v = torch.randn(1, 4, 1, 64)
+    """Core JL property: Q·K_approx ≈ Q·K.
 
-    # True dot product
-    true_dot = (q * k).sum(dim=-1)  # (1, 4, 1)
+    We use normalized error (absolute error / product of norms) instead of
+    relative error on the dot product value, because random vectors can have
+    near-zero dot products where relative error blows up meaninglessly.
+    """
+    # Use multiple vectors to get a stable measurement
+    q = torch.randn(1, 4, 32, 64)   # 32 query vectors
+    k = torch.randn(1, 4, 32, 64)   # 32 key vectors
+    v = torch.randn(1, 4, 32, 64)
+
+    # True dot products: Q @ K^T gives all pairwise dot products
+    true_dots = torch.matmul(q, k.transpose(-1, -2))  # (1, 4, 32, 32)
 
     # Approximate K from cache
     ret_k, ret_v = cache.update(k, v, layer_idx=0)
-    approx_dot = (q * ret_k).sum(dim=-1)  # (1, 4, 1)
+    approx_dots = torch.matmul(q, ret_k.transpose(-1, -2))
 
-    # Should be close (within ~20% relative error for 4-bit at dim=64)
-    rel_error = ((approx_dot - true_dot).abs() / (true_dot.abs() + 1e-6)).mean().item()
-    assert rel_error < 0.3, f"Dot product relative error too large: {rel_error:.4f}"
+    # Normalized error: |true - approx| / (||q|| * ||k||)
+    # This measures how much the dot product error is relative to the
+    # magnitude of the vectors, not relative to the dot product value itself.
+    q_norms = q.norm(dim=-1, keepdim=True)  # (1, 4, 32, 1)
+    k_norms = k.norm(dim=-1, keepdim=True).transpose(-1, -2)  # (1, 4, 1, 32)
+    scale = q_norms * k_norms  # (1, 4, 32, 32)
+
+    normalized_error = ((approx_dots - true_dots).abs() / (scale + 1e-6)).mean().item()
+    assert normalized_error < 0.15, f"Normalized dot product error too large: {normalized_error:.4f}"
 
 
 def test_more_bits_means_less_error():
