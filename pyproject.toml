@@ -11,6 +11,8 @@ dependencies = [
     "matplotlib>=3.9",
     "huggingface-hub>=0.25",
     "datasets>=3.0",
+    "turboquant>=0.2.0",
+    "quanto>=0.2.0",
 ]
 
 [project.optional-dependencies]
