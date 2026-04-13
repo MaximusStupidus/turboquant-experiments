@@ -43,56 +43,78 @@ Usage:
 import math
 import torch
 import numpy as np
-from scipy.stats import norm
 from transformers import DynamicCache
 
 
-def compute_gaussian_codebook(bits: int, n_points: int = 10000) -> torch.Tensor:
-    """Compute MSE-optimal quantization centroids for a standard Gaussian.
+def compute_beta_codebook(dim: int, bits: int) -> torch.Tensor:
+    """Compute MSE-optimal quantization centroids for the unit-sphere distribution.
 
-    For a Gaussian distribution N(0,1), the optimal way to place 2^bits
-    bucket centers is NOT uniform spacing. Instead, we:
+    When you take a vector, normalize it to unit norm, then multiply by a
+    random orthogonal matrix, each coordinate of the result follows a
+    Beta((d-1)/2, (d-1)/2) distribution mapped to [-1, 1].
 
-    1. Divide the Gaussian into 2^bits equal-probability regions
-       (each region contains 1/2^bits of the total probability mass).
-    2. The centroid of each region is the conditional expectation
-       E[X | X is in region_i] — i.e., the average value of X given
-       that X falls in that region.
+    This is NOT a Gaussian. For d=128, alpha=63.5, the Beta distribution is
+    much more concentrated around 0 than a Gaussian — lighter tails, sharper
+    peak. Using a Gaussian codebook wastes centroids on tail regions where
+    no data lives. Using the correct Beta codebook places centroids where
+    the data actually is.
 
-    This is called Lloyd-Max quantization. It minimizes the mean squared
-    error between the original values and their quantized representations.
+    The procedure (Lloyd-Max quantization for Beta):
+    1. Divide the Beta distribution into 2^bits equal-probability regions
+       using Beta quantiles.
+    2. Place each centroid at the conditional expectation within its region,
+       computed via numerical integration.
 
-    At 4-bit (16 buckets), uniform and optimal are nearly identical.
-    At 2-bit (4 buckets), optimal placement is significantly better
-    because it concentrates buckets where the data density is highest.
+    Args:
+        dim: the vector dimension (e.g., 128 for head_dim). Determines the
+             Beta shape parameter alpha = (dim-1)/2.
+        bits: number of quantization bits.
 
     Returns:
-        codebook: tensor of shape (2^bits,) containing the optimal centroids,
-                  sorted in ascending order.
+        codebook: tensor of shape (2^bits,) containing optimal centroids
+                  in [-1, 1], sorted ascending.
     """
+    from scipy.special import betaincinv
+    from scipy.stats import beta as beta_dist
+
     num_levels = 2 ** bits
+    alpha = (dim - 1) / 2.0
 
-    # Divide the Gaussian into equal-probability regions.
-    # The boundaries between regions are the quantiles at 1/N, 2/N, ..., (N-1)/N.
-    boundaries = [norm.ppf(i / num_levels) for i in range(1, num_levels)]
-    boundaries = [-float('inf')] + boundaries + [float('inf')]
+    # Special case: 1-bit (2 centroids) has a closed-form solution
+    if bits == 1:
+        c = math.sqrt(2.0 / (math.pi * dim))
+        return torch.tensor([-c, c], dtype=torch.float32)
 
-    # For each region, compute the conditional expectation E[X | lower < X < upper].
-    # For a standard Gaussian:
-    #   E[X | a < X < b] = (phi(a) - phi(b)) / (Phi(b) - Phi(a))
-    # where phi = PDF, Phi = CDF.
+    # Beta distribution on [0, 1] with shape (alpha, alpha)
+    rv = beta_dist(alpha, alpha)
+
+    # Find boundaries that divide the Beta into equal-probability regions.
+    # betaincinv gives the quantile function of the regularized incomplete beta.
+    # Map from [0,1] to [-1,1] via: x_mapped = 2*x - 1
+    boundaries_01 = []
+    for i in range(1, num_levels):
+        q = float(betaincinv(alpha, alpha, i / num_levels))
+        boundaries_01.append(q)
+
+    # Compute centroid for each region: E[X | lower < X < upper]
+    # Using numerical integration on a fine grid
     centroids = []
-    for i in range(num_levels):
-        a, b = boundaries[i], boundaries[i + 1]
-        # phi(a) - phi(b) gives the expected value integral
-        pdf_a = norm.pdf(a) if a != -float('inf') else 0.0
-        pdf_b = norm.pdf(b) if b != float('inf') else 0.0
-        cdf_diff = norm.cdf(b) - norm.cdf(a)
-        if cdf_diff > 0:
-            centroid = (pdf_a - pdf_b) / cdf_diff
+    lowers = [0.0] + boundaries_01
+    uppers = boundaries_01 + [1.0]
+
+    for lo, hi in zip(lowers, uppers):
+        # Fine grid within [lo, hi]
+        x = np.linspace(lo, hi, 2000)
+        pdf_vals = rv.pdf(x)
+        # E[X | lo < X < hi] = integral(x * pdf) / integral(pdf)
+        numerator = np.trapezoid(x * pdf_vals, x)
+        denominator = np.trapezoid(pdf_vals, x)
+        if denominator > 0:
+            centroid_01 = numerator / denominator
         else:
-            centroid = (a + b) / 2
-        centroids.append(centroid)
+            centroid_01 = (lo + hi) / 2.0
+        # Map from [0,1] to [-1,1]
+        centroids.append(2.0 * centroid_01 - 1.0)
 
     return torch.tensor(centroids, dtype=torch.float32)
 
@@ -129,11 +151,11 @@ class HandrolledTurboQuantCache(DynamicCache):
         self.num_layers = num_layers
         self.head_dim = head_dim
 
-        # Precompute the MSE-optimal codebook for a standard Gaussian.
-        # After orthogonal projection, the values are approximately Gaussian,
-        # so this codebook is near-optimal for the projected data.
-        # Shape: (num_levels,) — e.g., [-1.51, -0.45, +0.45, +1.51] for 2-bit
-        self.codebook = compute_gaussian_codebook(bits).to(dtype).to(device)
+        # Precompute the MSE-optimal codebook for the unit-sphere distribution.
+        # After normalizing to unit norm and rotating by an orthogonal matrix,
+        # each coordinate follows Beta((d-1)/2, (d-1)/2) mapped to [-1,1].
+        # The codebook is optimized for this EXACT distribution.
+        self.codebook = compute_beta_codebook(head_dim, bits).to(dtype).to(device)
 
         # ── Generate random projection matrices ──
         # One matrix per layer, shape (head_dim, head_dim).
@@ -166,54 +188,54 @@ class HandrolledTurboQuantCache(DynamicCache):
         self._quantized_layers = [[] for _ in range(num_layers)]
 
     def _quantize_tensor(self, x: torch.Tensor, R: torch.Tensor):
-        """Project and quantize a tensor using MSE-optimal codebook.
+        """Project and quantize a tensor using unit-sphere normalization + Beta codebook.
+
+        The correct TurboQuant procedure:
+        1. Normalize each vector to unit norm (store the norm as a scalar)
+        2. Rotate by orthogonal matrix R
+        3. Each coordinate now follows Beta((d-1)/2, (d-1)/2) on [-1,1]
+        4. Quantize using the precomputed Beta-optimal codebook
+        5. Dequantize, unrotate, rescale by stored norm
 
         Args:
             x: shape (batch, n_heads, seq_len, head_dim) — the K or V tensor
             R: shape (head_dim, head_dim) — the projection matrix for this layer
 
         Returns:
-            (indices, scale, mean, x_approx)
-            - indices: uint8 tensor, same shape as x, values in [0, num_levels-1]
-            - scale: per-head-per-token standard deviation (for rescaling)
-            - mean: per-head-per-token mean (for centering)
+            (indices, norms, x_approx)
+            - indices: uint8 tensor, values in [0, num_levels-1]
+            - norms: L2 norms per vector, shape (batch, n_heads, seq_len)
             - x_approx: the dequantized + unprojected approximate tensor
         """
-        # Step 1: Project into "flat" space
-        # After orthogonal projection, the values are approximately Gaussian.
-        x_proj = x @ R
+        # Work in float32 for numerical precision during quantization
+        x_f32 = x.float()
 
-        # Step 2: Normalize to standard Gaussian (mean=0, std=1)
-        # The codebook was computed for N(0,1), so we need to standardize
-        # the projected values before quantizing, then rescale after.
-        # We compute mean and std per (head, token) vector.
-        mean = x_proj.mean(dim=-1, keepdim=True)    # (batch, n_heads, seq_len, 1)
-        std = x_proj.std(dim=-1, keepdim=True)       # (batch, n_heads, seq_len, 1)
-        std = torch.clamp(std, min=1e-8)             # avoid division by zero
+        # Step 1: Normalize to unit sphere
+        # Store the L2 norm — this is the ONLY scalar we need per vector
+        # (vs. mean+std = 2 scalars in the wrong Gaussian approach)
+        norms = x_f32.norm(dim=-1, keepdim=True)      # (batch, n_heads, seq_len, 1)
+        x_unit = x_f32 / (norms + 1e-10)               # unit norm vectors
 
-        x_normalized = (x_proj - mean) / std          # approximately N(0,1)
+        # Step 2: Rotate by orthogonal matrix
+        # Each coordinate of x_rotated now follows Beta((d-1)/2, (d-1)/2) on [-1,1]
+        x_rotated = x_unit @ R.float()
 
-        # Step 3: Quantize — find nearest codebook centroid for each value
-        # codebook shape: (num_levels,)
-        # x_normalized shape: (batch, n_heads, seq_len, head_dim)
-        # We compute distance from each value to each centroid, pick the closest.
-        #
-        # Expand dimensions for broadcasting:
-        # x_normalized: (..., head_dim, 1) vs codebook: (num_levels,)
-        diffs = (x_normalized.unsqueeze(-1) - self.codebook)  # (..., head_dim, num_levels)
-        indices = diffs.abs().argmin(dim=-1).to(torch.uint8)  # (..., head_dim)
+        # Step 3: Quantize — find nearest Beta-optimal centroid for each value
+        # codebook shape: (num_levels,) — centroids in [-1, 1]
+        # x_rotated values are in [-1, 1]
+        diffs = (x_rotated.unsqueeze(-1) - self.codebook.float())  # (..., head_dim, num_levels)
+        indices = diffs.abs().argmin(dim=-1).to(torch.uint8)
 
-        # Step 4: Dequantize — look up centroid values and rescale
-        # Map indices back to codebook values (still in normalized space)
-        x_normalized_approx = self.codebook[indices.long()]
+        # Step 4: Dequantize — look up centroid values
+        x_rotated_approx = self.codebook[indices.long()].float()
 
-        # Rescale back to original projected space
-        x_proj_approx = x_normalized_approx * std + mean
+        # Step 5: Unrotate — back to original coordinate system
+        x_unit_approx = x_rotated_approx @ R.float().T
 
-        # Step 5: Unproject — rotate back to original coordinate system
-        x_approx = x_proj_approx @ R.T
+        # Step 6: Rescale by stored norm
+        x_approx = x_unit_approx * norms
 
-        return indices, std.squeeze(-1), mean.squeeze(-1), x_approx
+        return indices, norms.squeeze(-1), x_approx.to(x.dtype)
 
     def update(self, key_states, value_states, layer_idx, cache_kwargs=None):
         """Override DynamicCache.update() to apply TurboQuant.
@@ -233,13 +255,13 @@ class HandrolledTurboQuantCache(DynamicCache):
         R = self.projections[layer_idx]
 
         # Quantize the new K and V
-        k_idx, k_std, k_mean, k_approx = self._quantize_tensor(key_states, R)
-        v_idx, v_std, v_mean, v_approx = self._quantize_tensor(value_states, R)
+        k_idx, k_norms, k_approx = self._quantize_tensor(key_states, R)
+        v_idx, v_norms, v_approx = self._quantize_tensor(value_states, R)
 
         # Store the compressed representation
         self._quantized_layers[layer_idx].append({
-            "k_idx": k_idx, "k_std": k_std, "k_mean": k_mean,
-            "v_idx": v_idx, "v_std": v_std, "v_mean": v_mean,
+            "k_idx": k_idx, "k_norms": k_norms,
+            "v_idx": v_idx, "v_norms": v_norms,
         })
 
         # Use the parent class to accumulate the APPROXIMATE values
