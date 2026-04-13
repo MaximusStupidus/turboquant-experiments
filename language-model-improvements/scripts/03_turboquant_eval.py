@@ -25,6 +25,11 @@ import sys
 import traceback
 
 import numpy as np
+# Monkey-patch: turboquant uses np.trapz which was removed in NumPy 2.0+
+# It was renamed to np.trapezoid. Patch it so turboquant works.
+if not hasattr(np, "trapz") and hasattr(np, "trapezoid"):
+    np.trapz = np.trapezoid
+
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
@@ -55,9 +60,8 @@ def make_kivi_factory(model_config, nbits):
     def factory():
         from transformers import QuantizedCache
         return QuantizedCache(
-            cache_config={"backend": "quanto", "nbits": nbits},
-            max_batch_size=1,
-            max_cache_len=2048,
+            backend="quanto",
+            nbits=nbits,
             config=model_config,
         )
     return factory
