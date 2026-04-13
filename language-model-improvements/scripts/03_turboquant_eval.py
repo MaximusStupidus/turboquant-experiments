@@ -63,39 +63,38 @@ def make_kivi_factory(model_config, nbits):
     return factory
 
 
-def make_turboquant_factory(key_bits, value_bits):
+def make_turboquant_factory(bits):
     """Factory for TurboQuant's cache (random projection + bit-quantization).
 
     This is the method we're testing. It projects K/V vectors with a random
     matrix (flattening outliers), then bit-quantizes the projected values.
+    The community package uses a single `bits` parameter for both K and V.
     """
     def factory():
         from turboquant import TurboQuantCache
-        return TurboQuantCache(
-            key_bits=key_bits,
-            value_bits=value_bits,
-        )
+        return TurboQuantCache(bits=bits)
     return factory
 
 
 # ─── Config definitions ──────────────────────────────────────────────────────
 
 def get_configs(model_config):
-    """The 5 configs we sweep over.
+    """The configs we sweep over.
 
     Two KIVI configs (the naive baseline at 4-bit and 2-bit),
-    three TurboQuant configs (k4v4, k4v2, k2v2).
+    three TurboQuant configs (4-bit, 3-bit, 2-bit).
 
     The critical comparisons are:
-    - KIVI 4-bit vs TQ k4v4  (same 4x compression, different methods)
-    - KIVI 2-bit vs TQ k2v2  (same 8x compression, different methods)
+    - KIVI 4-bit vs TQ 4-bit  (same compression, different methods)
+    - KIVI 2-bit vs TQ 2-bit  (same compression, different methods)
+    - TQ 3-bit is the default/recommended setting from the package
     """
     return [
         ("KIVI 4-bit",       "kivi_4bit.json",       make_kivi_factory(model_config, nbits=4)),
         ("KIVI 2-bit",       "kivi_2bit.json",       make_kivi_factory(model_config, nbits=2)),
-        ("TurboQuant k4v4",  "turboquant_k4v4.json", make_turboquant_factory(key_bits=4, value_bits=4)),
-        ("TurboQuant k4v2",  "turboquant_k4v2.json", make_turboquant_factory(key_bits=4, value_bits=2)),
-        ("TurboQuant k2v2",  "turboquant_k2v2.json", make_turboquant_factory(key_bits=2, value_bits=2)),
+        ("TurboQuant 4-bit", "turboquant_4bit.json", make_turboquant_factory(bits=4)),
+        ("TurboQuant 3-bit", "turboquant_3bit.json", make_turboquant_factory(bits=3)),
+        ("TurboQuant 2-bit", "turboquant_2bit.json", make_turboquant_factory(bits=2)),
     ]
 
 
