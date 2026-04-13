@@ -211,6 +211,8 @@ def main():
     parser.add_argument("--prefill-len", type=int, default=128,
                         help="Tokens to prefill before autoregressive scoring")
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--only-handrolled", action="store_true",
+                        help="Only run handrolled configs (skip fp16/KIVI/community TQ)")
     args = parser.parse_args()
 
     torch.manual_seed(args.seed)
@@ -240,6 +242,9 @@ def main():
 
     # ── Run the sweep ──
     configs = get_configs(model.config)
+    if args.only_handrolled:
+        configs = [(n, f, cf) for n, f, cf in configs if "Handrolled" in n]
+        print(f"  --only-handrolled: running {len(configs)} configs")
     all_results = []
 
     for config_name, filename, cache_factory in configs:
