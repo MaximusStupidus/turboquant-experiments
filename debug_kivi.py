@@ -1,4 +1,4 @@
-"""Debug script v2: dig into KIVI QuantizedCache.layers structure."""
+"""Debug script v3: check quanto quantization internals."""
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, QuantizedCache
 
@@ -11,61 +11,52 @@ model = AutoModelForCausalLM.from_pretrained(
 tokenizer = AutoTokenizer.from_pretrained("NousResearch/Meta-Llama-3.1-8B-Instruct")
 print("Model loaded.\n")
 
-# Create cache
+# Create and run
 cache = QuantizedCache(backend="quanto", nbits=2, config=model.config)
-
-print("=== Cache structure ===")
-print(f"  type: {type(cache).__name__}")
-print(f"  has .layers: {hasattr(cache, 'layers')}")
-if hasattr(cache, 'layers'):
-    print(f"  len(layers): {len(cache.layers)}")
-    if len(cache.layers) > 0:
-        layer0 = cache.layers[0]
-        print(f"  layer[0] type: {type(layer0).__name__}")
-        print(f"  layer[0] attrs: {[x for x in dir(layer0) if not x.startswith('__')]}")
-        if hasattr(layer0, 'residual_length'):
-            print(f"  layer[0].residual_length: {layer0.residual_length}")
-        if hasattr(layer0, 'nbits'):
-            print(f"  layer[0].nbits: {layer0.nbits}")
-
-# Forward pass with 512 tokens
-print("\n=== Forward pass ===")
 prompt = "The history of artificial intelligence " * 50
 inputs = tokenizer(prompt, return_tensors="pt", max_length=512, truncation=True).to("cuda")
-labels = inputs.input_ids.clone()
-print(f"  tokens: {inputs.input_ids.shape[1]}")
 
 with torch.no_grad():
-    out = model(**inputs, labels=labels, past_key_values=cache, use_cache=True)
+    out = model(**inputs, labels=inputs.input_ids.clone(), past_key_values=cache, use_cache=True)
 
-print(f"  loss with KIVI 2-bit: {out.loss.item():.6f}")
+layer0 = cache.layers[0]
 
-# Check cache state after forward pass
-print("\n=== Cache after forward pass ===")
-if hasattr(cache, 'layers') and len(cache.layers) > 0:
-    layer0 = cache.layers[0]
-    print(f"  layer[0] type: {type(layer0).__name__}")
-    all_attrs = [x for x in dir(layer0) if not x.startswith('_')]
-    print(f"  public attrs: {all_attrs}")
-    # Check every attribute that might hold quantized data
-    for attr in dir(layer0):
-        if 'quant' in attr.lower() or 'key' in attr.lower() or 'value' in attr.lower():
-            val = getattr(layer0, attr)
-            if hasattr(val, 'shape'):
-                print(f"  .{attr}: shape={val.shape} dtype={val.dtype}")
-            elif hasattr(val, 'numel'):
-                print(f"  .{attr}: numel={val.numel()}")
-            elif not callable(val):
-                print(f"  .{attr}: {val}")
+print("=== Quantization details ===")
+print(f"  nbits: {layer0.nbits}")
+print(f"  qtype: {layer0.qtype}")
+print(f"  q_group_size: {layer0.q_group_size}")
+print(f"  residual_length: {layer0.residual_length}")
+print()
 
-# Compare fp16 vs KIVI
-print("\n=== fp16 vs KIVI 2-bit comparison ===")
-with torch.no_grad():
-    out_fp16 = model(**inputs, labels=labels, use_cache=True)
-    fresh_cache = QuantizedCache(backend="quanto", nbits=2, config=model.config)
-    out_kivi = model(**inputs, labels=labels, past_key_values=fresh_cache, use_cache=True)
+# Check the actual _quantized_keys object
+qk = layer0._quantized_keys
+print(f"=== _quantized_keys ===")
+print(f"  type: {type(qk).__name__}")
+print(f"  dtype: {qk.dtype}")
+print(f"  shape: {qk.shape}")
 
-print(f"  fp16 loss:      {out_fp16.loss.item():.8f}")
-print(f"  KIVI 2-bit loss: {out_kivi.loss.item():.8f}")
-print(f"  difference:     {abs(out_fp16.loss.item() - out_kivi.loss.item()):.8f}")
-print(f"  bit-identical:  {out_fp16.loss.item() == out_kivi.loss.item()}")
+# Is it a quanto QTensor or a regular tensor?
+import optimum.quanto as quanto
+print(f"  is QTensor: {isinstance(qk, quanto.QTensor)}")
+print(f"  quanto version: {quanto.__version__}")
+
+# Try manual quantization to see if quanto works at all
+print("\n=== Manual quanto test ===")
+test_tensor = torch.randn(1, 8, 64, 128, dtype=torch.float16, device="cuda")
+try:
+    from optimum.quanto import quantize_activation, qint2, qint4
+    q_test = quantize_activation(test_tensor, qtype=qint2)
+    deq_test = q_test.dequantize()
+    diff = (test_tensor - deq_test).abs().mean().item()
+    print(f"  manual qint2 quantize->dequantize diff: {diff:.6f}")
+    print(f"  (should be > 0 if quantization is real)")
+except Exception as e:
+    print(f"  manual quantization failed: {e}")
+
+# Check what _quantize actually does
+print("\n=== layer._quantize source ===")
+import inspect
+print(inspect.getsource(layer0._quantize))
+
+print("\n=== layer._dequantize source ===")
+print(inspect.getsource(layer0._dequantize))
