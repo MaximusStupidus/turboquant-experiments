@@ -1,0 +1,509 @@
+{
+  "meta": {
+    "model": "NousResearch/Meta-Llama-3.1-8B-Instruct",
+    "device": "NVIDIA A100-SXM4-80GB",
+    "torch_version": "2.11.0+cu130",
+    "seed": 42,
+    "max_tokens": 32768,
+    "stride": 512,
+    "max_length": 2048,
+    "dtype": "float16"
+  },
+  "model_info": {
+    "total_params": 8030261248,
+    "weight_bytes": 16060522496,
+    "num_layers": 32,
+    "num_q_heads": 32,
+    "num_kv_heads": 8,
+    "head_dim": 128,
+    "hidden_size": 4096
+  },
+  "perplexity": {
+    "value": 6.5707,
+    "tokens_scored": 32768,
+    "dataset": "wikitext-2-raw-v1 (test split)"
+  },
+  "memory": {
+    "peak_gpu_bytes": 19775810560,
+    "peak_gpu_human": "18.42 GB",
+    "weight_bytes": 16060522496,
+    "weight_human": "14.96 GB",
+    "kv_per_token_bytes": 131072,
+    "kv_at_window_bytes": 268435456,
+    "kv_at_window_human": "256.00 MB"
+  },
+  "throughput": {
+    "tokens_per_sec": 37.92,
+    "gen_prompt": "Explain the concept of quantization in neural networks in detail.",
+    "max_new_tokens": 128,
+    "num_runs": 3
+  },
+  "outlier_analysis": {
+    "ctx_512": {
+      "layer_0": {
+        "thresh_3.0x": {
+          "K_outlier_count": 3,
+          "V_outlier_count": 11,
+          "K_outlier_channels": [
+            0,
+            64,
+            807
+          ],
+          "V_outlier_channels": [
+            16,
+            184,
+            265,
+            273,
+            287,
+            317,
+            794,
+            825,
+            911,
+            963
+          ]
+        },
+        "thresh_5.0x": {
+          "K_outlier_count": 0,
+          "V_outlier_count": 2,
+          "K_outlier_channels": [],
+          "V_outlier_channels": [
+            963,
+            988
+          ]
+        },
+        "thresh_10.0x": {
+          "K_outlier_count": 0,
+          "V_outlier_count": 0,
+          "K_outlier_channels": [],
+          "V_outlier_channels": []
+        },
+        "K_stats": {
+          "mean": -0.0039163981564342976,
+          "std": 1.4006272554397583,
+          "min": -10.3125,
+          "max": 8.71875,
+          "p99.9": 7.316421985626221
+        },
+        "V_stats": {
+          "mean": -0.00019208060984965414,
+          "std": 0.03292692080140114,
+          "min": -0.446044921875,
+          "max": 0.4736328125,
+          "p99.9": 0.26904296875
+        }
+      },
+      "layer_16": {
+        "thresh_3.0x": {
+          "K_outlier_count": 13,
+          "V_outlier_count": 0,
+          "K_outlier_channels": [
+            61,
+            125,
+            234,
+            244,
+            359,
+            490,
+            616,
+            692,
+            756,
+            869
+          ],
+          "V_outlier_channels": []
+        },
+        "thresh_5.0x": {
+          "K_outlier_count": 1,
+          "V_outlier_count": 0,
+          "K_outlier_channels": [
+            490
+          ],
+          "V_outlier_channels": []
+        },
+        "thresh_10.0x": {
+          "K_outlier_count": 0,
+          "V_outlier_count": 0,
+          "K_outlier_channels": [],
+          "V_outlier_channels": []
+        },
+        "K_stats": {
+          "mean": 0.049085140228271484,
+          "std": 2.096480369567871,
+          "min": -15.5390625,
+          "max": 18.640625,
+          "p99.9": 14.9453125
+        },
+        "V_stats": {
+          "mean": -0.0005922499112784863,
+          "std": 0.2576712667942047,
+          "min": -1.408203125,
+          "max": 1.8974609375,
+          "p99.9": 1.177734375
+        }
+      },
+      "layer_31": {
+        "thresh_3.0x": {
+          "K_outlier_count": 11,
+          "V_outlier_count": 9,
+          "K_outlier_channels": [
+            104,
+            121,
+            169,
+            301,
+            360,
+            377,
+            427,
+            615,
+            680,
+            894
+          ],
+          "V_outlier_channels": [
+            386,
+            398,
+            404,
+            436,
+            452,
+            456,
+            474,
+            476,
+            508
+          ]
+        },
+        "thresh_5.0x": {
+          "K_outlier_count": 1,
+          "V_outlier_count": 0,
+          "K_outlier_channels": [
+            427
+          ],
+          "V_outlier_channels": []
+        },
+        "thresh_10.0x": {
+          "K_outlier_count": 0,
+          "V_outlier_count": 0,
+          "K_outlier_channels": [],
+          "V_outlier_channels": []
+        },
+        "K_stats": {
+          "mean": -0.02577374316751957,
+          "std": 1.9667787551879883,
+          "min": -15.6953125,
+          "max": 14.3125,
+          "p99.9": 13.710945129394531
+        },
+        "V_stats": {
+          "mean": -0.0033798099029809237,
+          "std": 0.5574949383735657,
+          "min": -5.0859375,
+          "max": 5.26953125,
+          "p99.9": 3.4492225646972656
+        }
+      }
+    },
+    "ctx_2048": {
+      "layer_0": {
+        "thresh_3.0x": {
+          "K_outlier_count": 3,
+          "V_outlier_count": 11,
+          "K_outlier_channels": [
+            0,
+            64,
+            807
+          ],
+          "V_outlier_channels": [
+            16,
+            184,
+            265,
+            273,
+            287,
+            317,
+            794,
+            825,
+            911,
+            963
+          ]
+        },
+        "thresh_5.0x": {
+          "K_outlier_count": 0,
+          "V_outlier_count": 2,
+          "K_outlier_channels": [],
+          "V_outlier_channels": [
+            963,
+            988
+          ]
+        },
+        "thresh_10.0x": {
+          "K_outlier_count": 0,
+          "V_outlier_count": 0,
+          "K_outlier_channels": [],
+          "V_outlier_channels": []
+        },
+        "K_stats": {
+          "mean": -0.01817714050412178,
+          "std": 1.4004979133605957,
+          "min": -10.3125,
+          "max": 8.7265625,
+          "p99.9": 7.316566467285156
+        },
+        "V_stats": {
+          "mean": -0.00019201514078304172,
+          "std": 0.03292704001069069,
+          "min": -0.44580078125,
+          "max": 0.4736328125,
+          "p99.9": 0.26904296875
+        }
+      },
+      "layer_16": {
+        "thresh_3.0x": {
+          "K_outlier_count": 13,
+          "V_outlier_count": 0,
+          "K_outlier_channels": [
+            61,
+            125,
+            234,
+            244,
+            359,
+            490,
+            616,
+            692,
+            756,
+            869
+          ],
+          "V_outlier_channels": []
+        },
+        "thresh_5.0x": {
+          "K_outlier_count": 1,
+          "V_outlier_count": 0,
+          "K_outlier_channels": [
+            490
+          ],
+          "V_outlier_channels": []
+        },
+        "thresh_10.0x": {
+          "K_outlier_count": 0,
+          "V_outlier_count": 0,
+          "K_outlier_channels": [],
+          "V_outlier_channels": []
+        },
+        "K_stats": {
+          "mean": 0.046790964901447296,
+          "std": 2.221034288406372,
+          "min": -16.171875,
+          "max": 19.09375,
+          "p99.9": 15.476882934570312
+        },
+        "V_stats": {
+          "mean": -0.00020445634436327964,
+          "std": 0.25294971466064453,
+          "min": -1.4658203125,
+          "max": 1.9033203125,
+          "p99.9": 1.224609375
+        }
+      },
+      "layer_31": {
+        "thresh_3.0x": {
+          "K_outlier_count": 11,
+          "V_outlier_count": 8,
+          "K_outlier_channels": [
+            104,
+            121,
+            169,
+            301,
+            360,
+            377,
+            427,
+            615,
+            680,
+            894
+          ],
+          "V_outlier_channels": [
+            386,
+            398,
+            436,
+            452,
+            456,
+            474,
+            476,
+            508
+          ]
+        },
+        "thresh_5.0x": {
+          "K_outlier_count": 0,
+          "V_outlier_count": 0,
+          "K_outlier_channels": [],
+          "V_outlier_channels": []
+        },
+        "thresh_10.0x": {
+          "K_outlier_count": 0,
+          "V_outlier_count": 0,
+          "K_outlier_channels": [],
+          "V_outlier_channels": []
+        },
+        "K_stats": {
+          "mean": -0.016068795695900917,
+          "std": 2.0238325595855713,
+          "min": -15.6953125,
+          "max": 14.3125,
+          "p99.9": 13.8046875
+        },
+        "V_stats": {
+          "mean": -0.004190098959952593,
+          "std": 0.5745617747306824,
+          "min": -5.08203125,
+          "max": 5.26953125,
+          "p99.9": 3.55078125
+        }
+      }
+    },
+    "ctx_8192": {
+      "layer_0": {
+        "thresh_3.0x": {
+          "K_outlier_count": 3,
+          "V_outlier_count": 11,
+          "K_outlier_channels": [
+            0,
+            64,
+            807
+          ],
+          "V_outlier_channels": [
+            16,
+            184,
+            265,
+            273,
+            287,
+            317,
+            794,
+            825,
+            911,
+            963
+          ]
+        },
+        "thresh_5.0x": {
+          "K_outlier_count": 0,
+          "V_outlier_count": 2,
+          "K_outlier_channels": [],
+          "V_outlier_channels": [
+            963,
+            988
+          ]
+        },
+        "thresh_10.0x": {
+          "K_outlier_count": 0,
+          "V_outlier_count": 0,
+          "K_outlier_channels": [],
+          "V_outlier_channels": []
+        },
+        "K_stats": {
+          "mean": -0.02965972013771534,
+          "std": 1.4003002643585205,
+          "min": -10.3125,
+          "max": 8.7265625,
+          "p99.9": 7.26171875
+        },
+        "V_stats": {
+          "mean": -0.00019208060984965414,
+          "std": 0.03292692080140114,
+          "min": -0.446044921875,
+          "max": 0.4736328125,
+          "p99.9": 0.26904296875
+        }
+      },
+      "layer_16": {
+        "thresh_3.0x": {
+          "K_outlier_count": 12,
+          "V_outlier_count": 0,
+          "K_outlier_channels": [
+            61,
+            125,
+            234,
+            244,
+            359,
+            490,
+            616,
+            692,
+            756,
+            892
+          ],
+          "V_outlier_channels": []
+        },
+        "thresh_5.0x": {
+          "K_outlier_count": 1,
+          "V_outlier_count": 0,
+          "K_outlier_channels": [
+            490
+          ],
+          "V_outlier_channels": []
+        },
+        "thresh_10.0x": {
+          "K_outlier_count": 0,
+          "V_outlier_count": 0,
+          "K_outlier_channels": [],
+          "V_outlier_channels": []
+        },
+        "K_stats": {
+          "mean": 0.03786242753267288,
+          "std": 2.2180967330932617,
+          "min": -16.234375,
+          "max": 19.40625,
+          "p99.9": 15.5703125
+        },
+        "V_stats": {
+          "mean": -0.001058155088685453,
+          "std": 0.2519243061542511,
+          "min": -1.4794921875,
+          "max": 1.91015625,
+          "p99.9": 1.2197265625
+        }
+      },
+      "layer_31": {
+        "thresh_3.0x": {
+          "K_outlier_count": 10,
+          "V_outlier_count": 6,
+          "K_outlier_channels": [
+            104,
+            121,
+            169,
+            301,
+            360,
+            377,
+            427,
+            615,
+            680,
+            894
+          ],
+          "V_outlier_channels": [
+            386,
+            398,
+            404,
+            436,
+            474,
+            476
+          ]
+        },
+        "thresh_5.0x": {
+          "K_outlier_count": 0,
+          "V_outlier_count": 0,
+          "K_outlier_channels": [],
+          "V_outlier_channels": []
+        },
+        "thresh_10.0x": {
+          "K_outlier_count": 0,
+          "V_outlier_count": 0,
+          "K_outlier_channels": [],
+          "V_outlier_channels": []
+        },
+        "K_stats": {
+          "mean": 0.010681120678782463,
+          "std": 2.0559184551239014,
+          "min": -15.6953125,
+          "max": 14.421875,
+          "p99.9": 13.8359375
+        },
+        "V_stats": {
+          "mean": -0.004781316500157118,
+          "std": 0.601760983467102,
+          "min": -5.08203125,
+          "max": 5.265625,
+          "p99.9": 3.701171875
+        }
+      }
+    }
+  }
+}
