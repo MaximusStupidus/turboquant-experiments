@@ -1,0 +1,29 @@
+{
+  "config_name": "KIVI 4-bit",
+  "meta": {
+    "model": "NousResearch/Meta-Llama-3.1-8B-Instruct",
+    "device": "NVIDIA A100-SXM4-80GB",
+    "torch_version": "2.11.0+cu130",
+    "seed": 42,
+    "max_eval_tokens": 2048,
+    "prefill_len": 128,
+    "eval_mode": "autoregressive"
+  },
+  "perplexity": {
+    "value": 5.5511,
+    "tokens_scored": 1919,
+    "dataset": "wikitext-2-raw-v1 (test split)"
+  },
+  "memory": {
+    "peak_gpu_bytes": 16178426368,
+    "peak_gpu_human": "15.07 GB",
+    "weight_bytes": 16060522496,
+    "kv_per_token_fp16_bytes": 131072
+  },
+  "throughput": {
+    "tokens_per_sec": 29.43,
+    "gen_prompt": "Explain the concept of quantization in neural networks in detail.",
+    "max_new_tokens": 128,
+    "num_runs": 3
+  }
+}
