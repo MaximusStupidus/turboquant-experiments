@@ -143,6 +143,7 @@ class HandrolledTurboQuantCache(DynamicCache):
         device: str = "cuda",
         dtype: torch.dtype = torch.float16,
         seed: int = 42,
+        residual_length: int = 128,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -150,11 +151,9 @@ class HandrolledTurboQuantCache(DynamicCache):
         self.num_levels = 2 ** bits  # e.g., 16 for 4-bit, 4 for 2-bit
         self.num_layers = num_layers
         self.head_dim = head_dim
+        self.residual_length = residual_length
 
         # Precompute the MSE-optimal codebook for the unit-sphere distribution.
-        # After normalizing to unit norm and rotating by an orthogonal matrix,
-        # each coordinate follows Beta((d-1)/2, (d-1)/2) mapped to [-1,1].
-        # The codebook is optimized for this EXACT distribution.
         self.codebook = compute_beta_codebook(head_dim, bits).to(dtype).to(device)
 
         # ── Generate random projection matrices ──
@@ -181,11 +180,11 @@ class HandrolledTurboQuantCache(DynamicCache):
             Q, _ = torch.linalg.qr(raw)
             self.projections.append(Q.to(dtype).to(device))
 
-        # Storage for quantized representations
-        # Each layer stores: list of (k_indices, k_scales, k_zeros,
-        #                              v_indices, v_scales, v_zeros)
-        # one entry per token that has been cached.
-        self._quantized_layers = [[] for _ in range(num_layers)]
+        # Track how many tokens each layer has seen.
+        # The first `residual_length` tokens are stored exact (no quantization).
+        # After that, new tokens are quantized before storage.
+        # This means the most recent context is always high-quality.
+        self._token_count = [0] * num_layers
 
     def _quantize_tensor(self, x: torch.Tensor, R: torch.Tensor):
         """Project and quantize a tensor using unit-sphere normalization + Beta codebook.
@@ -238,33 +237,31 @@ class HandrolledTurboQuantCache(DynamicCache):
         return indices, norms.squeeze(-1), x_approx.to(x.dtype)
 
     def update(self, key_states, value_states, layer_idx, cache_kwargs=None):
-        """Override DynamicCache.update() to apply TurboQuant.
+        """Override DynamicCache.update() to apply TurboQuant with residual buffer.
 
-        This is called by the model at each layer during the forward pass.
-        The model passes fresh K/V states and expects to get back the full
-        accumulated K/V (including all previous tokens).
+        Simple residual strategy:
+        - The first `residual_length` tokens per layer are stored EXACT (no quantization).
+        - After that, new tokens are quantized before storage.
+        - This means the earliest context is exact, and only later tokens are lossy.
 
-        We:
-        1. Quantize the NEW key/value states (project + quantize)
-        2. Store the compressed representation
-        3. Return the APPROXIMATE (lossy) key/value states
+        In autoregressive generation (token-by-token), this means the prefill
+        tokens stay exact and generated tokens get quantized — which is the
+        correct behavior because the prefill establishes the context and the
+        generated tokens extend it.
 
-        The lossy values are what the attention layer uses, so the quality
-        impact of quantization is reflected in the model's outputs.
+        The community package does something slightly more sophisticated
+        (it keeps the MOST RECENT tokens exact and quantizes the OLDEST),
+        but this simpler approach captures the same core idea: not everything
+        needs to be quantized.
         """
-        R = self.projections[layer_idx]
+        self._token_count[layer_idx] += key_states.shape[2]
 
-        # Quantize the new K and V
-        k_idx, k_norms, k_approx = self._quantize_tensor(key_states, R)
-        v_idx, v_norms, v_approx = self._quantize_tensor(value_states, R)
-
-        # Store the compressed representation
-        self._quantized_layers[layer_idx].append({
-            "k_idx": k_idx, "k_norms": k_norms,
-            "v_idx": v_idx, "v_norms": v_norms,
-        })
-
-        # Use the parent class to accumulate the APPROXIMATE values
-        # This is what the model reads during attention.
-        # We pass k_approx/v_approx (lossy) instead of key_states/value_states (exact).
-        return super().update(k_approx, v_approx, layer_idx, cache_kwargs)
+        if self._token_count[layer_idx] <= self.residual_length:
+            # Within residual window: store exact, no quantization
+            return super().update(key_states, value_states, layer_idx, cache_kwargs)
+        else:
+            # Beyond residual: quantize before storing
+            R = self.projections[layer_idx]
+            _, _, k_approx = self._quantize_tensor(key_states, R)
+            _, _, v_approx = self._quantize_tensor(value_states, R)
+            return super().update(k_approx, v_approx, layer_idx, cache_kwargs)

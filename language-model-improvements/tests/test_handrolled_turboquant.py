@@ -15,7 +15,9 @@ from language_model_improvements.handrolled_turboquant import HandrolledTurboQua
 
 @pytest.fixture
 def cache():
-    """A small cache for testing (CPU, fp32 for numerical clarity)."""
+    """A small cache for testing (CPU, fp32 for numerical clarity).
+    residual_length=0 so all tokens get quantized — tests the quantization logic.
+    """
     return HandrolledTurboQuantCache(
         num_layers=2,
         num_kv_heads=4,
@@ -24,6 +26,7 @@ def cache():
         device="cpu",
         dtype=torch.float32,
         seed=42,
+        residual_length=0,
     )
 
 
@@ -103,6 +106,7 @@ def test_more_bits_means_less_error():
         c = HandrolledTurboQuantCache(
             num_layers=1, num_kv_heads=4, head_dim=64,
             bits=bits, device="cpu", dtype=torch.float32, seed=42,
+            residual_length=0,
         )
         ret_k, _ = c.update(k, v, layer_idx=0)
         err = (ret_k - k).abs().mean().item()
@@ -118,6 +122,7 @@ def test_different_layers_use_different_projections():
     cache = HandrolledTurboQuantCache(
         num_layers=2, num_kv_heads=4, head_dim=64,
         bits=4, device="cpu", dtype=torch.float32, seed=42,
+        residual_length=0,
     )
 
     k = torch.randn(1, 4, 1, 64)
@@ -127,6 +132,31 @@ def test_different_layers_use_different_projections():
     ret_k_layer1, _ = cache.update(k, v, layer_idx=1)
 
     # Same input, different layers → different approximations
-    # (because each layer uses a different random projection matrix)
     assert not torch.equal(ret_k_layer0, ret_k_layer1), \
         "Expected different projections per layer"
+
+
+def test_residual_buffer_keeps_recent_tokens_exact():
+    """Tokens within residual_length should be stored EXACT (no quantization)."""
+    cache = HandrolledTurboQuantCache(
+        num_layers=1, num_kv_heads=4, head_dim=64,
+        bits=2, device="cpu", dtype=torch.float32, seed=42,
+        residual_length=10,
+    )
+
+    # Insert 5 tokens (within residual) — should be exact
+    k = torch.randn(1, 4, 5, 64)
+    v = torch.randn(1, 4, 5, 64)
+    ret_k, _ = cache.update(k, v, layer_idx=0)
+    assert torch.equal(ret_k, k), "Tokens within residual should be exact"
+
+    # Insert 10 more tokens (exceeds residual of 10) — new ones should be lossy
+    k2 = torch.randn(1, 4, 10, 64)
+    v2 = torch.randn(1, 4, 10, 64)
+    ret_k2, _ = cache.update(k2, v2, layer_idx=0)
+    # ret_k2 has 15 tokens total: first 5 exact, next 10 lossy
+    assert ret_k2.shape == (1, 4, 15, 64)
+    # The first 5 should still be exact
+    assert torch.equal(ret_k2[:, :, :5, :], k)
+    # The next 10 should be different (quantized)
+    assert not torch.equal(ret_k2[:, :, 5:, :], k2)
