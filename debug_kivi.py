@@ -1,62 +1,52 @@
-"""Debug script v3: check quanto quantization internals."""
+"""Debug v4: definitive test — does cache.update() return original or dequantized values?"""
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer, QuantizedCache
+from transformers import QuantizedCache, AutoModelForCausalLM, AutoTokenizer
 
 print("Loading model...")
 model = AutoModelForCausalLM.from_pretrained(
     "NousResearch/Meta-Llama-3.1-8B-Instruct",
-    torch_dtype=torch.float16,
-    device_map="cuda",
-)
+    torch_dtype=torch.float16, device_map="cuda")
 tokenizer = AutoTokenizer.from_pretrained("NousResearch/Meta-Llama-3.1-8B-Instruct")
 print("Model loaded.\n")
 
-# Create and run
+# First check: does dequantize produce different values?
+print("=== Check 1: does quantize->dequantize change values? ===")
 cache = QuantizedCache(backend="quanto", nbits=2, config=model.config)
 prompt = "The history of artificial intelligence " * 50
 inputs = tokenizer(prompt, return_tensors="pt", max_length=512, truncation=True).to("cuda")
 
 with torch.no_grad():
-    out = model(**inputs, labels=inputs.input_ids.clone(), past_key_values=cache, use_cache=True)
+    out = model(**inputs, past_key_values=cache, use_cache=True)
 
 layer0 = cache.layers[0]
-
-print("=== Quantization details ===")
-print(f"  nbits: {layer0.nbits}")
-print(f"  qtype: {layer0.qtype}")
-print(f"  q_group_size: {layer0.q_group_size}")
-print(f"  residual_length: {layer0.residual_length}")
-print()
-
-# Check the actual _quantized_keys object
 qk = layer0._quantized_keys
-print(f"=== _quantized_keys ===")
-print(f"  type: {type(qk).__name__}")
-print(f"  dtype: {qk.dtype}")
-print(f"  shape: {qk.shape}")
+deq = qk.dequantize()
 
-# Is it a quanto QTensor or a regular tensor?
-import optimum.quanto as quanto
-print(f"  is QTensor: {isinstance(qk, quanto.QTensor)}")
-print(f"  quanto version: {quanto.__version__}")
+print(f"  quantized type: {type(qk).__name__}")
+print(f"  dequantized shape: {deq.shape}, dtype: {deq.dtype}")
+print(f"  dequantized min: {deq.min():.4f}, max: {deq.max():.4f}")
+print(f"  num unique values in dequantized: {deq.unique().numel()}")
+print(f"  (if truly 2-bit quantized, should have very few unique values)")
 
-# Try manual quantization to see if quanto works at all
-print("\n=== Manual quanto test ===")
-test_tensor = torch.randn(1, 8, 64, 128, dtype=torch.float16, device="cuda")
-try:
-    from optimum.quanto import quantize_activation, qint2, qint4
-    q_test = quantize_activation(test_tensor, qtype=qint2)
-    deq_test = q_test.dequantize()
-    diff = (test_tensor - deq_test).abs().mean().item()
-    print(f"  manual qint2 quantize->dequantize diff: {diff:.6f}")
-    print(f"  (should be > 0 if quantization is real)")
-except Exception as e:
-    print(f"  manual quantization failed: {e}")
+# Second check: what does update() return?
+print("\n=== Check 2: does update() return original or dequantized? ===")
+fresh_cache = QuantizedCache(backend="quanto", nbits=2, config=model.config)
+fake_key = torch.randn(1, 8, 300, 128, dtype=torch.float16, device="cuda")
+fake_value = torch.randn(1, 8, 300, 128, dtype=torch.float16, device="cuda")
 
-# Check what _quantize actually does
-print("\n=== layer._quantize source ===")
-import inspect
-print(inspect.getsource(layer0._quantize))
+returned_k, returned_v = fresh_cache.update(fake_key, fake_value, layer_idx=0)
 
-print("\n=== layer._dequantize source ===")
-print(inspect.getsource(layer0._dequantize))
+diff_mean = (fake_key - returned_k).abs().mean().item()
+diff_max = (fake_key - returned_k).abs().max().item()
+print(f"  input vs returned key mean diff: {diff_mean:.6f}")
+print(f"  input vs returned key max diff:  {diff_max:.6f}")
+print(f"  bit-identical: {torch.equal(fake_key, returned_k)}")
+print()
+if diff_mean == 0:
+    print("  DIAGNOSIS: update() returns ORIGINAL values, not dequantized.")
+    print("  This means KIVI quantization has ZERO effect on the forward pass.")
+    print("  The cache stores quantized data but the model never reads it back —")
+    print("  it uses the original values that update() returned.")
+else:
+    print(f"  DIAGNOSIS: update() returns DEQUANTIZED values (lossy).")
+    print(f"  Quantization should affect the forward pass.")
