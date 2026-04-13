@@ -12,13 +12,18 @@ Tracking problems encountered during the experiment, their diagnosis, and resolu
 
 **Symptom:** KIVI 4-bit and KIVI 2-bit both report perplexity = 6.57, identical to the fp16 baseline. This is impossible — 2-bit quantization must introduce some quality loss.
 
-**Diagnosis:** The sliding-window perplexity evaluation processes each 2048-token window as a single forward pass. In a single pass, the model computes all K/V vectors and uses them immediately — nothing gets stored and read back from the cache on a subsequent step. The QuantizedCache object is injected but the quantization has no effect because the cache is never *read* in a later step. KIVI only quantizes on write and dequantizes on read — within a single pass, the model sees the original fp16 values, not the quantized ones.
+**Initial diagnosis (WRONG):** Originally thought the sliding-window eval doesn't use the cache because "nothing gets stored and read back." This was incorrect — transformers models call `cache.update()` during every forward pass including single-pass prefill, and both TurboQuant and KIVI dequantize on every `update()` call. Both should affect perplexity even in single-pass mode.
 
-**Why TurboQuant showed different numbers:** TurboQuant's cache appears to modify the K/V values during the write step itself (project → quantize → dequantize → store approximate values), so the attention computation sees lossy values even within a single forward pass. This makes TurboQuant's perplexity numbers (6.85, 7.44, 12.46) likely real, though they may understate the full effect vs. true autoregressive generation.
+**Updated diagnosis (after reading source code):** Both `TurboQuantCache` and HF `QuantizedCache` follow the same pattern: quantize on store, dequantize on every read via `update()`. The model calls `update()` at each layer during prefill, so the attention layer receives dequantized (lossy) K/V values. TurboQuant clearly shows this effect (PPL 6.85/7.44/12.46 vs 6.57 baseline). KIVI shows zero effect (PPL 6.57/6.57), which means **something is preventing KIVI's quantization from actually engaging.**
 
-**Fix needed:** Rewrite the perplexity evaluation to use autoregressive (token-by-token) generation, where each step reads quantized cached values from all previous steps. This is the only mode where KV cache quantization fully affects the computation. Will be slower but will produce valid numbers.
+**Likely root causes (not yet confirmed):**
+1. The `optimum-quanto` backend may not be actually quantizing — the object is created without error but the quantize step is a no-op due to a config/version mismatch.
+2. The `residual_length` parameter may default to something ≥ 2048, meaning the entire window fits in the residual buffer and nothing ever gets quantized.
+3. A subtle API issue where the QuantizedCache is created but the model creates a separate internal cache and uses that instead.
 
-**Status:** Open — needs eval harness update.
+**Investigation needed:** Add debug logging inside the KIVI factory to check (a) whether `_quantized_keys` is ever populated (non-empty), and (b) what the residual_length is set to.
+
+**Status:** Open — root cause not yet confirmed. TurboQuant numbers are valid. KIVI numbers are invalid.
 
 ---
 
