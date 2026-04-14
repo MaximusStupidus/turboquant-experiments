@@ -27,8 +27,22 @@ from vibevoice.modular.modeling_vibevoice_streaming_inference import (
 from vibevoice.processor.vibevoice_streaming_processor import VibeVoiceStreamingProcessor
 
 
+def get_device():
+    """Pick the best available device: CUDA > MPS > CPU."""
+    if torch.cuda.is_available():
+        return "cuda"
+    elif torch.backends.mps.is_available():
+        return "mps"
+    return "cpu"
+
+
 def main():
     print("=== VibeVoice-Realtime-0.5B Test ===\n")
+
+    device = get_device()
+    # MPS and CPU need float32; CUDA can use bfloat16
+    dtype = torch.bfloat16 if device == "cuda" else torch.float32
+    print(f"Device: {device}, dtype: {dtype}\n")
 
     # Load model
     print("Loading model...")
@@ -38,9 +52,11 @@ def main():
     )
     model = VibeVoiceStreamingForConditionalGenerationInference.from_pretrained(
         "microsoft/VibeVoice-Realtime-0.5B",
-        torch_dtype=torch.bfloat16,
-        device_map="cuda",
+        torch_dtype=dtype,
+        device_map=device if device == "cuda" else None,
     )
+    if device != "cuda":
+        model = model.to(device)
     model.eval()
     model.set_ddpm_inference_steps(num_steps=5)
     print(f"Model loaded in {time.time() - t0:.1f}s\n")
@@ -64,7 +80,7 @@ def main():
         sys.exit(1)
 
     print(f"Loading voice prompt: {voice_path}")
-    all_prefilled_outputs = torch.load(voice_path, map_location="cuda", weights_only=False)
+    all_prefilled_outputs = torch.load(voice_path, map_location=device, weights_only=False)
     print(f"Voice prompt loaded.\n")
 
     # Inspect the cache structure
@@ -98,7 +114,7 @@ def main():
     )
     for k, v in inputs.items():
         if torch.is_tensor(v):
-            inputs[k] = v.to("cuda")
+            inputs[k] = v.to(device)
 
     t0 = time.time()
     outputs = model.generate(
@@ -127,7 +143,8 @@ def main():
     print(f"  Audio duration: {audio_duration:.2f}s")
     print(f"  Generation time: {gen_time:.2f}s")
     print(f"  RTF: {gen_time / audio_duration:.3f} (< 1.0 = real-time)")
-    print(f"  Peak GPU memory: {torch.cuda.max_memory_allocated() / 1e9:.2f} GB")
+    if torch.cuda.is_available():
+        print(f"  Peak GPU memory: {torch.cuda.max_memory_allocated() / 1e9:.2f} GB")
     print("\n=== Test PASSED ===")
 
 
