@@ -116,9 +116,50 @@ uv run pytest language-model-improvements/tests/ -v
 
 The `notes/` directory contains the learning journey — written explanations of attention, KV caches, quantization, and the Johnson-Lindenstrauss lemma, plus pedagogical scripts that visualize random projection's dot-product preservation and outlier-flattening properties. These are the foundations that make the implementation make sense.
 
-## Part 2: VibeVoice TTS (coming soon)
+## Part 2: VibeVoice TTS (in progress)
 
-TurboQuant applies to any autoregressive transformer with a KV cache — not just text LLMs. Modern TTS models like Microsoft's VibeVoice are structurally language models over audio tokens, with the same KV cache bottleneck. Part 2 will apply the same technique to VibeVoice and measure whether KV cache compression affects audio quality and voice identity preservation.
+TurboQuant applies to any autoregressive transformer with a KV cache — not just text LLMs. Part 2 tests this on **Microsoft VibeVoice-Realtime-0.5B**, an autoregressive TTS model built on Qwen2.5-0.5B.
+
+### Why TTS?
+
+Modern neural TTS models are structurally language models: they have transformer layers, attention, Q/K/V projections, and a KV cache that grows with each generated audio frame. The KV cache compression problem is architecturally identical to the LLM case. If TurboQuant's random projection trick preserves dot products (a domain-agnostic geometric property), it should preserve speech quality the same way it preserves text quality.
+
+### What's different from Part 1
+
+| Aspect | Part 1 (LLM) | Part 2 (TTS) |
+|---|---|---|
+| Model | Llama-3.1-8B | VibeVoice-Realtime-0.5B |
+| Output | Text tokens | Continuous acoustic latents → speech audio |
+| Quality metric | Perplexity | UTMOS (naturalness), Speaker Similarity, WER |
+| Speed metric | Tokens/sec | Real-time factor (RTF), time-to-first-audio |
+| KV cache | 32 layers, 8 KV heads, head_dim=128 | 20 TTS layers, 2 KV heads, head_dim=64 |
+| Key question | Does text quality survive? | Does voice identity survive? |
+
+### Architecture
+
+VibeVoice-Realtime-0.5B splits its 24 transformer layers into:
+- **Base LM (4 layers):** Processes text only — small cache, not our target
+- **TTS LM (20 layers):** Processes text + speech — large, growing cache — **our TurboQuant target**
+
+The model also uses a **diffusion head** (4 layers, not cached) to generate continuous 64-dim acoustic latents at each speech position, and a VAE decoder to convert latents to 24kHz waveform. Only the transformer backbone has a KV cache; TurboQuant targets only that.
+
+### Metrics
+
+| Metric | What it measures | Why it matters |
+|---|---|---|
+| **UTMOS** | Audio naturalness (1-5 MOS) | Does it still sound human? |
+| **Speaker similarity** | Voice identity (cosine sim) | Same person or different? |
+| **WER** | Intelligibility (word error rate) | Can you understand the words? |
+| **RTF** | Generation speed / audio duration | Is it real-time capable? |
+| **Time-to-first-audio** | Latency to first chunk | Does it feel responsive? |
+
+### Design decision: what to quantize
+
+The voice prompt's KV cache captures **speaker identity**. Generated tokens' cache captures **content**. We test two strategies:
+- **Safe:** Keep prompt cache at fp16, only quantize generated tokens (preserves identity)
+- **Aggressive:** Quantize everything (tests whether identity survives compression)
+
+Full design: [`docs/superpowers/specs/2026-04-14-part2-vibevoice-design.md`](docs/superpowers/specs/2026-04-14-part2-vibevoice-design.md)
 
 ## License
 
