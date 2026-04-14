@@ -136,27 +136,32 @@ def test_different_layers_use_different_projections():
         "Expected different projections per layer"
 
 
-def test_residual_buffer_keeps_recent_tokens_exact():
-    """Tokens within residual_length should be stored EXACT (no quantization)."""
+def test_residual_buffer_keeps_most_recent_exact():
+    """The most recent residual_length tokens should be EXACT.
+    Older tokens that overflow the residual should be quantized (lossy)."""
     cache = HandrolledTurboQuantCache(
         num_layers=1, num_kv_heads=4, head_dim=64,
         bits=2, device="cpu", dtype=torch.float32, seed=42,
-        residual_length=10,
+        residual_length=5,
     )
 
-    # Insert 5 tokens (within residual) — should be exact
-    k = torch.randn(1, 4, 5, 64)
-    v = torch.randn(1, 4, 5, 64)
-    ret_k, _ = cache.update(k, v, layer_idx=0)
-    assert torch.equal(ret_k, k), "Tokens within residual should be exact"
+    # Insert 5 tokens (fills residual exactly) — all exact
+    k1 = torch.randn(1, 4, 5, 64)
+    v1 = torch.randn(1, 4, 5, 64)
+    ret_k, _ = cache.update(k1, v1, layer_idx=0)
+    assert torch.equal(ret_k, k1), "Initial tokens within residual should be exact"
 
-    # Insert 10 more tokens (exceeds residual of 10) — new ones should be lossy
-    k2 = torch.randn(1, 4, 10, 64)
-    v2 = torch.randn(1, 4, 10, 64)
+    # Insert 3 more tokens — residual overflows (8 > 5)
+    # Oldest 3 tokens get quantized, most recent 5 stay exact
+    k2 = torch.randn(1, 4, 3, 64)
+    v2 = torch.randn(1, 4, 3, 64)
     ret_k2, _ = cache.update(k2, v2, layer_idx=0)
-    # ret_k2 has 15 tokens total: first 5 exact, next 10 lossy
-    assert ret_k2.shape == (1, 4, 15, 64)
-    # The first 5 should still be exact
-    assert torch.equal(ret_k2[:, :, :5, :], k)
-    # The next 10 should be different (quantized)
-    assert not torch.equal(ret_k2[:, :, 5:, :], k2)
+    assert ret_k2.shape == (1, 4, 8, 64)
+
+    # The LAST 3 tokens (most recent) should be exact
+    assert torch.equal(ret_k2[:, :, -3:, :], k2), \
+        "Most recent tokens should be exact (in residual)"
+
+    # The FIRST 3 tokens (oldest, overflowed) should be lossy
+    assert not torch.equal(ret_k2[:, :, :3, :], k1[:, :, :3, :]), \
+        "Oldest tokens should be quantized (lossy)"

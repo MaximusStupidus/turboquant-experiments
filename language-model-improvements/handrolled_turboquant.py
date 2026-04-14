@@ -180,11 +180,20 @@ class HandrolledTurboQuantCache(DynamicCache):
             Q, _ = torch.linalg.qr(raw)
             self.projections.append(Q.to(dtype).to(device))
 
-        # Track how many tokens each layer has seen.
-        # The first `residual_length` tokens are stored exact (no quantization).
-        # After that, new tokens are quantized before storage.
-        # This means the most recent context is always high-quality.
-        self._token_count = [0] * num_layers
+        # Per-layer state for the sliding residual buffer.
+        # _quantized_k/v: accumulated dequantized older tokens (or None)
+        # _residual_k/v: list of recent exact token tensors
+        # _residual_count: how many tokens are in the residual right now
+        #
+        # Strategy: new tokens always enter the residual (exact). When the
+        # residual exceeds residual_length, the OLDEST tokens in the residual
+        # get quantized and merged into _quantized. The MOST RECENT tokens
+        # stay exact. This means the model's immediate context is always
+        # high-quality, and only distant past context is lossy.
+        self._quantized_k = [None] * num_layers
+        self._quantized_v = [None] * num_layers
+        self._residual_k = [[] for _ in range(num_layers)]
+        self._residual_v = [[] for _ in range(num_layers)]
 
     def _quantize_tensor(self, x: torch.Tensor, R: torch.Tensor):
         """Project and quantize a tensor using unit-sphere normalization + Beta codebook.
@@ -237,31 +246,97 @@ class HandrolledTurboQuantCache(DynamicCache):
         return indices, norms.squeeze(-1), x_approx.to(x.dtype)
 
     def update(self, key_states, value_states, layer_idx, cache_kwargs=None):
-        """Override DynamicCache.update() to apply TurboQuant with residual buffer.
+        """Override DynamicCache.update() with sliding residual buffer.
 
-        Simple residual strategy:
-        - The first `residual_length` tokens per layer are stored EXACT (no quantization).
-        - After that, new tokens are quantized before storage.
-        - This means the earliest context is exact, and only later tokens are lossy.
+        How it works:
+        1. New tokens ALWAYS enter the residual buffer (exact, no quantization).
+        2. If the residual exceeds residual_length, the OLDEST tokens in the
+           residual get quantized and pushed into the quantized portion.
+        3. The MOST RECENT residual_length tokens stay exact.
+        4. We return [quantized (lossy) | residual (exact)] concatenated.
 
-        In autoregressive generation (token-by-token), this means the prefill
-        tokens stay exact and generated tokens get quantized — which is the
-        correct behavior because the prefill establishes the context and the
-        generated tokens extend it.
+        This means the tokens the model is actively attending to most strongly
+        (the most recent ones) are always at full precision. Only distant past
+        tokens — whose attention weights are typically small — are lossy.
 
-        The community package does something slightly more sophisticated
-        (it keeps the MOST RECENT tokens exact and quantizes the OLDEST),
-        but this simpler approach captures the same core idea: not everything
-        needs to be quantized.
+        We do NOT use super().update() because DynamicCache's internal storage
+        format varies across transformers versions. Instead we manage our own
+        state and just return the (key, value) tensors that the model expects.
         """
-        self._token_count[layer_idx] += key_states.shape[2]
+        R = self.projections[layer_idx]
 
-        if self._token_count[layer_idx] <= self.residual_length:
-            # Within residual window: store exact, no quantization
-            return super().update(key_states, value_states, layer_idx, cache_kwargs)
+        # Step 1: Add new tokens to the residual (exact)
+        self._residual_k[layer_idx].append(key_states)
+        self._residual_v[layer_idx].append(value_states)
+
+        # Concatenate all residual tokens into one tensor
+        res_k = torch.cat(self._residual_k[layer_idx], dim=2)
+        res_v = torch.cat(self._residual_v[layer_idx], dim=2)
+        res_len = res_k.shape[2]
+
+        # Step 2: If residual overflows, quantize the oldest tokens
+        if res_len > self.residual_length:
+            overflow = res_len - self.residual_length
+
+            # Split: [oldest (to quantize) | newest (keep exact)]
+            old_k = res_k[:, :, :overflow, :]
+            old_v = res_v[:, :, :overflow, :]
+            keep_k = res_k[:, :, overflow:, :]
+            keep_v = res_v[:, :, overflow:, :]
+
+            # Quantize the oldest tokens
+            _, _, old_k_approx = self._quantize_tensor(old_k, R)
+            _, _, old_v_approx = self._quantize_tensor(old_v, R)
+
+            # Merge into quantized portion
+            if self._quantized_k[layer_idx] is not None:
+                self._quantized_k[layer_idx] = torch.cat(
+                    [self._quantized_k[layer_idx], old_k_approx], dim=2)
+                self._quantized_v[layer_idx] = torch.cat(
+                    [self._quantized_v[layer_idx], old_v_approx], dim=2)
+            else:
+                self._quantized_k[layer_idx] = old_k_approx
+                self._quantized_v[layer_idx] = old_v_approx
+
+            # Update residual to only the newest tokens
+            self._residual_k[layer_idx] = [keep_k]
+            self._residual_v[layer_idx] = [keep_v]
+            res_k = keep_k
+            res_v = keep_v
+
+        # Step 3: Build full view [quantized | residual] and return
+        if self._quantized_k[layer_idx] is not None:
+            full_k = torch.cat([self._quantized_k[layer_idx], res_k], dim=2)
+            full_v = torch.cat([self._quantized_v[layer_idx], res_v], dim=2)
         else:
-            # Beyond residual: quantize before storing
-            R = self.projections[layer_idx]
-            _, _, k_approx = self._quantize_tensor(key_states, R)
-            _, _, v_approx = self._quantize_tensor(value_states, R)
-            return super().update(k_approx, v_approx, layer_idx, cache_kwargs)
+            full_k = res_k
+            full_v = res_v
+
+        return full_k, full_v
+
+    def get_seq_length(self, layer_idx: int = 0) -> int:
+        """Return the total cached sequence length for a layer."""
+        total = 0
+        if self._quantized_k[layer_idx] is not None:
+            total += self._quantized_k[layer_idx].shape[2]
+        for t in self._residual_k[layer_idx]:
+            total += t.shape[2]
+        return total
+
+    def __len__(self):
+        """Number of layers in the cache."""
+        return self.num_layers
+
+    def __iter__(self):
+        """Iterate over layers, yielding (key, value) tuples."""
+        for i in range(self.num_layers):
+            res_k = torch.cat(self._residual_k[i], dim=2) if self._residual_k[i] else None
+            res_v = torch.cat(self._residual_v[i], dim=2) if self._residual_v[i] else None
+            if self._quantized_k[i] is not None and res_k is not None:
+                k = torch.cat([self._quantized_k[i], res_k], dim=2)
+                v = torch.cat([self._quantized_v[i], res_v], dim=2)
+            elif res_k is not None:
+                k, v = res_k, res_v
+            else:
+                continue
+            yield (k, v)
