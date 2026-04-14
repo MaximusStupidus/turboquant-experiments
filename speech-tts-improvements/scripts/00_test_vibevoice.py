@@ -102,7 +102,7 @@ def main():
     print()
 
     # Generate speech
-    test_text = "Hello, this is a test of voice quality after KV cache compression."
+    test_text = "Hello, this message is from Dr. [redacted], [redacted], [redacted], and [redacted]. We are testing voice quality after KV cache compression."
     print(f"Generating speech for: {test_text!r}")
 
     inputs = processor.process_input_with_cached_prompt(
