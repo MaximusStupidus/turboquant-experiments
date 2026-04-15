@@ -11,8 +11,15 @@ Run on GPU:
 
 Requires: VibeVoice repo cloned alongside our repo (see setup instructions).
 """
-import sys
+# Disable TF/Flax imports in transformers — prevents segfault on Mac Anaconda
+# where transformers tries to import a broken tensorflow and crashes.
 import os
+os.environ["USE_TF"] = "0"
+os.environ["USE_TORCH"] = "1"
+os.environ["USE_FLAX"] = "0"
+os.environ["TRANSFORMERS_NO_ADVISORY_WARNINGS"] = "1"
+
+import sys
 import time
 import torch
 import copy
