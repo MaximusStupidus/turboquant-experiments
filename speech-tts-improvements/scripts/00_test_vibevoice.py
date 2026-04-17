@@ -103,21 +103,24 @@ def main():
     all_prefilled_outputs = torch.load(voice_path, map_location=device, weights_only=False)
 
     # The .pt file has DynamicCache objects with key_cache/value_cache populated
-    # but NOT the new .layers attribute that current transformers expects.
-    # Convert each cache: save as legacy tuple, reload as fresh DynamicCache.
+    # in __dict__, but the NEW DynamicCache class has .key_cache as a property
+    # that redirects to .layers (empty). We bypass the property by reading __dict__
+    # directly, then rebuild a fresh DynamicCache with the data properly in .layers.
     from transformers import DynamicCache
     for key in list(all_prefilled_outputs.keys()):
         val = all_prefilled_outputs[key]
         if hasattr(val, "past_key_values") and val.past_key_values is not None:
             old_cache = val.past_key_values
-            # Extract legacy tuple format (works even when .layers is empty)
-            if hasattr(old_cache, "key_cache") and len(old_cache.key_cache) > 0:
-                legacy = tuple(
-                    (k, v) for k, v in zip(old_cache.key_cache, old_cache.value_cache)
-                )
+            kc = old_cache.__dict__.get("key_cache", [])
+            vc = old_cache.__dict__.get("value_cache", [])
+            if len(kc) > 0 and len(vc) > 0:
+                legacy = tuple((k, v) for k, v in zip(kc, vc))
                 new_cache = DynamicCache.from_legacy_cache(legacy)
                 val.past_key_values = new_cache
-                print(f"  {key}: rebuilt cache with {len(new_cache.layers)} layers")
+                n_layers = len(new_cache.layers) if hasattr(new_cache, "layers") else 0
+                print(f"  {key}: rebuilt cache, {n_layers} layers")
+            else:
+                print(f"  {key}: no cache data to rebuild")
     print("Voice prompt loaded and shimmed.\n")
 
     # Inspect the cache structure
