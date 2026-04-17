@@ -44,6 +44,11 @@ for _cls in (AutoModel, AutoModelForCausalLM, AutoConfig):
 from vibevoice.modular.modeling_vibevoice_streaming_inference import (
     VibeVoiceStreamingForConditionalGenerationInference,
 )
+
+# Patch VibeVoice's MockCacheLayer to have is_compileable (new transformers needs it)
+import vibevoice.modular.modeling_vibevoice_streaming_inference as _vibe_streaming
+if hasattr(_vibe_streaming, "MockCacheLayer"):
+    _vibe_streaming.MockCacheLayer.is_compileable = False
 from vibevoice.processor.vibevoice_streaming_processor import VibeVoiceStreamingProcessor
 
 
