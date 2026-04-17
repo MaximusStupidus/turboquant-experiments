@@ -28,6 +28,19 @@ import copy
 VIBEVOICE_REPO = os.environ.get("VIBEVOICE_REPO", "/workspace/VibeVoice")
 sys.path.insert(0, VIBEVOICE_REPO)
 
+# Monkey-patch AutoModel.register to allow re-registration.
+# VibeVoice calls register() at import time without exist_ok=True, so subsequent
+# imports (or test runs in the same venv) raise. Default exist_ok=True fixes this.
+from transformers import AutoModel, AutoModelForCausalLM, AutoConfig
+for _cls in (AutoModel, AutoModelForCausalLM, AutoConfig):
+    _orig = _cls.register
+    def _make_patched(orig):
+        def patched(*a, **kw):
+            kw.setdefault("exist_ok", True)
+            return orig(*a, **kw)
+        return patched
+    _cls.register = staticmethod(_make_patched(_orig))
+
 from vibevoice.modular.modeling_vibevoice_streaming_inference import (
     VibeVoiceStreamingForConditionalGenerationInference,
 )
