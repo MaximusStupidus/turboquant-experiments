@@ -101,7 +101,24 @@ def main():
 
     print(f"Loading voice prompt: {voice_path}")
     all_prefilled_outputs = torch.load(voice_path, map_location=device, weights_only=False)
-    print(f"Voice prompt loaded.\n")
+
+    # The .pt file has DynamicCache objects with key_cache/value_cache populated
+    # but NOT the new .layers attribute that current transformers expects.
+    # Convert each cache: save as legacy tuple, reload as fresh DynamicCache.
+    from transformers import DynamicCache
+    for key in list(all_prefilled_outputs.keys()):
+        val = all_prefilled_outputs[key]
+        if hasattr(val, "past_key_values") and val.past_key_values is not None:
+            old_cache = val.past_key_values
+            # Extract legacy tuple format (works even when .layers is empty)
+            if hasattr(old_cache, "key_cache") and len(old_cache.key_cache) > 0:
+                legacy = tuple(
+                    (k, v) for k, v in zip(old_cache.key_cache, old_cache.value_cache)
+                )
+                new_cache = DynamicCache.from_legacy_cache(legacy)
+                val.past_key_values = new_cache
+                print(f"  {key}: rebuilt cache with {len(new_cache.layers)} layers")
+    print("Voice prompt loaded and shimmed.\n")
 
     # Inspect the cache structure
     print("=== Voice Prompt Cache Structure ===")
