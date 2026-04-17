@@ -5,7 +5,7 @@ description = "Comparative benchmarks of TurboQuant on Llama-3.1-8B and VibeVoic
 requires-python = ">=3.11"
 dependencies = [
     "torch>=2.4",
-    "transformers>=4.45",
+    "transformers>=4.51,<4.55",  # VibeVoice requires qwen2.tokenization_qwen2_fast (removed in 4.55+)
     "accelerate>=0.34",
     "numpy>=2.0",
     "matplotlib>=3.9",
