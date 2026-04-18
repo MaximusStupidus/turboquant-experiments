@@ -116,9 +116,11 @@ uv run pytest language-model-improvements/tests/ -v
 
 The `notes/` directory contains the learning journey — written explanations of attention, KV caches, quantization, and the Johnson-Lindenstrauss lemma, plus pedagogical scripts that visualize random projection's dot-product preservation and outlier-flattening properties. These are the foundations that make the implementation make sense.
 
-## Part 2: VibeVoice TTS (in progress)
+## Part 2: Parler-TTS (in progress)
 
-TurboQuant applies to any autoregressive transformer with a KV cache — not just text LLMs. Part 2 tests this on **Microsoft VibeVoice-Realtime-0.5B**, an autoregressive TTS model built on Qwen2.5-0.5B.
+TurboQuant applies to any autoregressive transformer with a KV cache — not just text LLMs. Part 2 tests this on **Parler-TTS Mini v1** from HuggingFace, an autoregressive decoder-only TTS model.
+
+**Note on the pivot:** Part 2 originally targeted Microsoft VibeVoice-Realtime-0.5B, but VibeVoice has a cache-API incompatibility with current transformers that requires rewriting its internal `MockCacheLayer`. VibeVoice code is preserved under `speech-tts-improvements/vibevoice/` with a full diagnosis in `notes/part2-vibevoice-blocked.md` for future revival. Parler-TTS answers the same scientific question with a cleanly-maintainable code path.
 
 ### Why TTS?
 
