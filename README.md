@@ -70,7 +70,9 @@ turboquant-experiments/
 │   │   └── 05_combine_results.py          # Combine individual JSONs into summary
 │   ├── results/                           # All result JSONs and plots
 │   └── tests/                             # Unit tests for helpers and handrolled implementation
-└── speech-tts-improvements/               # Part 2: VibeVoice TTS (coming soon)
+└── speech-tts-improvements/               # Part 2: Parler-TTS (in progress; VibeVoice archived)
+    ├── parler/                            # Active: Parler-TTS Mini v1 scripts
+    └── vibevoice/                         # Archived: VibeVoice code + blocker diagnosis
 ```
 
 ## The handrolled implementation
@@ -118,9 +120,17 @@ The `notes/` directory contains the learning journey — written explanations of
 
 ## Part 2: Parler-TTS (in progress)
 
-TurboQuant applies to any autoregressive transformer with a KV cache — not just text LLMs. Part 2 tests this on **Parler-TTS Mini v1** from HuggingFace, an autoregressive decoder-only TTS model.
+TurboQuant applies to any autoregressive transformer with a KV cache — not just text LLMs. Part 2 tests this on **Parler-TTS Mini v1** from HuggingFace, an 880M-param encoder-decoder TTS model whose decoder is a standard GPT-2-style autoregressive transformer.
 
-**Note on the pivot:** Part 2 originally targeted Microsoft VibeVoice-Realtime-0.5B, but VibeVoice has a cache-API incompatibility with current transformers that requires rewriting its internal `MockCacheLayer`. VibeVoice code is preserved under `speech-tts-improvements/vibevoice/` with a full diagnosis in `notes/part2-vibevoice-blocked.md` for future revival. Parler-TTS answers the same scientific question with a cleanly-maintainable code path.
+### Pivot: VibeVoice → Parler-TTS (2026-04-18)
+
+> **What changed.** Part 2 originally targeted Microsoft's **VibeVoice-Realtime-0.5B**. After landing on it, we hit a hard blocker and switched to **Parler-TTS Mini v1**, which answers the same scientific question (*does TurboQuant generalize to autoregressive TTS?*) on a cleanly-maintainable code path.
+>
+> **Why VibeVoice is blocked.** VibeVoice-Realtime-0.5B requires `transformers >= 4.51.3` (for `qwen2` tokenizer_fast), but `transformers >= 4.55` removed `qwen2.tokenization_qwen2_fast` entirely. The only compatible window is `transformers [4.51, 4.55)` — and those versions use the **new** `DynamicCache` API (`.layers` property; `key_cache` is a deprecated wrapper), whereas VibeVoice's streaming inference code was written against the **old** `DynamicCache` API (`key_cache` = list of tensors). VibeVoice ships a `MockCacheLayer` shim to bridge the two APIs, but the shim is incomplete: it's missing `is_compileable`, `keys`/`values`, and other attributes the new property-based accessors dereference. Each patch exposes the next missing attribute. Fixing it properly requires rewriting `modeling_vibevoice_streaming_inference.py`'s cache layer to match the new API — a half-day of surgery on an abandoned repo, for an experiment whose question has nothing to do with VibeVoice specifically.
+>
+> **Why Parler-TTS is the replacement.** Parler's decoder uses **standard HuggingFace `DynamicCache`**, so our `HandrolledTurboQuantCache` from Part 1 drops straight in via `model.generate(..., past_key_values=cache)` — the decoder auto-wraps our cache into the self-attention slot of the `EncoderDecoderCache`. No subclassing, no shims, no API mismatch. 880M params fits on A10G with massive headroom, and the inference path is documented on the model card.
+>
+> **What's preserved, what's new.** All five VibeVoice scripts (model-load test, voice-prompt / raw-cache / model-structure inspectors, CPU wrapper) stay under [`speech-tts-improvements/vibevoice/`](speech-tts-improvements/vibevoice/) with a full diagnosis in [`notes/part2-vibevoice-blocked.md`](notes/part2-vibevoice-blocked.md) for anyone who wants to revive it. Parler-TTS scripts live under [`speech-tts-improvements/parler/scripts/`](speech-tts-improvements/parler/scripts/). Full pivot spec: [`docs/superpowers/specs/2026-04-18-part2-parler-pivot.md`](docs/superpowers/specs/2026-04-18-part2-parler-pivot.md). Implementation plan: [`docs/superpowers/plans/2026-04-18-part2-parler-impl.md`](docs/superpowers/plans/2026-04-18-part2-parler-impl.md).
 
 ### Why TTS?
 
@@ -130,38 +140,53 @@ Modern neural TTS models are structurally language models: they have transformer
 
 | Aspect | Part 1 (LLM) | Part 2 (TTS) |
 |---|---|---|
-| Model | Llama-3.1-8B | VibeVoice-Realtime-0.5B |
-| Output | Text tokens | Continuous acoustic latents → speech audio |
-| Quality metric | Perplexity | UTMOS (naturalness), Speaker Similarity, WER |
+| Model | Llama-3.1-8B-Instruct | Parler-TTS Mini v1 (880M) |
+| Architecture | Decoder-only transformer | Encoder (Flan-T5-large) + autoregressive decoder + DAC audio codec |
+| Output | Text tokens | Audio codec tokens → 44.1 kHz waveform |
+| Quality metric | Perplexity | WER (intelligibility), speaker similarity (optional) |
 | Speed metric | Tokens/sec | Real-time factor (RTF), time-to-first-audio |
-| KV cache | 32 layers, 8 KV heads, head_dim=128 | 20 TTS layers, 2 KV heads, head_dim=64 |
-| Key question | Does text quality survive? | Does voice identity survive? |
+| Decoder KV cache | 32 layers, 8 KV heads (GQA), head_dim=128 | 24 layers, 16 KV heads (full MHA, no GQA), head_dim=64 |
+| Cache object | `DynamicCache` | `EncoderDecoderCache(self_attn=DynamicCache, cross_attn=DynamicCache)` — we target self-attn only |
+| Key question | Does text quality survive at 2-bit? | Does speech quality survive at 2-bit? |
 
-### Architecture
+### Architecture (Parler-TTS Mini v1)
 
-VibeVoice-Realtime-0.5B splits its 24 transformer layers into:
-- **Base LM (4 layers):** Processes text only — small cache, not our target
-- **TTS LM (20 layers):** Processes text + speech — large, growing cache — **our TurboQuant target**
+Encoder-decoder:
 
-The model also uses a **diffusion head** (4 layers, not cached) to generate continuous 64-dim acoustic latents at each speech position, and a VAE decoder to convert latents to 24kHz waveform. Only the transformer backbone has a KV cache; TurboQuant targets only that.
+- **Encoder (Flan-T5-large):** runs once per input, produces a fixed-size context for cross-attention. Not autoregressive. **Not our target.**
+- **Decoder (`ParlerTTSDecoder`):** 24-layer GPT-2-style autoregressive transformer with cross-attention to the T5 encoder. Voice is steered via a natural-language *description* (e.g., "A female speaker with a clear voice, moderate pace, studio quality.") — no reference-audio voice prompts. **This is our target.**
+- **Audio codec (DAC):** 9 parallel codebooks with delay pattern, decoded to 44.1 kHz waveform inside `model.generate()`.
+
+The decoder's self-attention KV cache grows with generated audio (~86 frames/sec, up to 4096 positions ≈ 30 sec). The cross-attention cache is constant-sized (depends only on description length). TurboQuant targets only the growing self-attention cache.
 
 ### Metrics
 
 | Metric | What it measures | Why it matters |
 |---|---|---|
-| **UTMOS** | Audio naturalness (1-5 MOS) | Does it still sound human? |
-| **Speaker similarity** | Voice identity (cosine sim) | Same person or different? |
-| **WER** | Intelligibility (word error rate) | Can you understand the words? |
-| **RTF** | Generation speed / audio duration | Is it real-time capable? |
-| **Time-to-first-audio** | Latency to first chunk | Does it feel responsive? |
+| **WER** | Intelligibility (word error rate via Whisper transcription) | Can you understand the words? |
+| **Speaker similarity** | Voice identity consistency across configs (cosine sim on speaker embeddings) | Does compression shift the voice? |
+| **RTF** | Generation time / audio duration | Is it real-time capable? |
+| **Time-to-first-audio** | Latency to first audio chunk | Does it feel responsive? |
 
-### Design decision: what to quantize
+### KV cache injection (the clean part)
 
-The voice prompt's KV cache captures **speaker identity**. Generated tokens' cache captures **content**. We test two strategies:
-- **Safe:** Keep prompt cache at fp16, only quantize generated tokens (preserves identity)
-- **Aggressive:** Quantize everything (tests whether identity survives compression)
+`ParlerTTSDecoder.forward()` auto-wraps a bare `DynamicCache` into the self-attention slot of an `EncoderDecoderCache`. So our Part 1 `HandrolledTurboQuantCache` plugs in unchanged:
 
-Full design: [`docs/superpowers/specs/2026-04-14-part2-vibevoice-design.md`](docs/superpowers/specs/2026-04-14-part2-vibevoice-design.md)
+```python
+from language_model_improvements.handrolled_turboquant import HandrolledTurboQuantCache
+
+cache = HandrolledTurboQuantCache(
+    num_layers=24, num_kv_heads=16, head_dim=64,
+    bits=2, device="cuda", dtype=torch.bfloat16, residual_length=128,
+)
+audio = model.generate(
+    input_ids=description_ids, prompt_input_ids=text_ids,
+    past_key_values=cache,  # auto-wrapped into EncoderDecoderCache
+    do_sample=False,
+)
+```
+
+Only `num_layers`, `num_kv_heads`, and `head_dim` change vs Part 1. The Beta codebook is recomputed per `head_dim` automatically.
 
 ## License
 
