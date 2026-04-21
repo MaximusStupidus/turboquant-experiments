@@ -11,18 +11,22 @@ VOICES = {
 }
 
 TEXTS = {
-    "short":  "Hello, this is a test of voice quality after KV cache compression.",
-    "medium": "Hello, this message is from Dr. [redacted], [redacted], [redacted], and [redacted]. We are testing voice quality after KV cache compression on open source TurboQuant.",
-    "long":   "Large language models store a KV cache during text generation — cached Key and Value vectors from all previous tokens that the model reads back at each step to compute attention. At long context lengths, this cache can exceed the model weights in memory. TurboQuant compresses it.",
+    # Harvard Sentences (IEEE Recommended Practices for Speech Quality
+    # Measurements, 1969) — phonetically balanced, no proper nouns or
+    # acronyms. Standard TTS/speech-quality benchmark.
+    "short":  "The birch canoe slid on the smooth planks.",
+    "medium": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well.",
+    "long":   "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch.",
 }
 
 # Parler-TTS emits ~86 audio frames/sec; generation_config.max_length=2580
-# corresponds to ~30 s of audio. Parler's custom generate() IGNORES
-# `max_new_tokens` and uses `max_length` for the delay pattern mask, so
-# we pass max_length directly per prompt sized to ~1.3x natural speech
-# duration (3 words/sec). Word counts: short=12, medium=34, long=56.
+# ≈ 30 s of audio. Parler's custom generate() uses `max_length` (NOT
+# `max_new_tokens`) for the delay pattern mask. Values below give ~1.5x
+# headroom over natural speech duration so the model can emit EOS
+# cleanly instead of running out of budget mid-sentence.
+# Word counts: short=9, medium=23, long=51.
 MAX_LENGTH = {
-    "short":  450,   # ~5 s of audio for ~12-word prompt
-    "medium": 1200,  # ~14 s of audio for ~34-word prompt
-    "long":   2400,  # ~28 s of audio for ~56-word prompt (close to model cap 2580)
+    "short":  500,   # ~5.8 s of audio for ~9-word prompt
+    "medium": 1400,  # ~16 s of audio for ~23-word prompt
+    "long":   2580,  # full Parler default — for ~51-word prompt (~20 s)
 }
