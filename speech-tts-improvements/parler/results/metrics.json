@@ -2,252 +2,252 @@
   "baseline": {
     "jon__short": {
       "wer": {
-        "transcript": "Hello, this is a test of voice quality after cache compression.",
-        "wer": 0.0833
+        "transcript": "The birch canoe slid on the smooth planks.",
+        "wer": 0.0
       }
     },
     "jon__medium": {
       "wer": {
-        "transcript": "Hello, this message is from Dr. Nersh, Jalua, Otsohu, and Muehl. We are testing voice quality after D.K. Cash on open source TurboQuint.",
-        "wer": 0.4074
+        "transcript": "The birch canoe slid on the smooth planks, glue the sheet to the dark blue background. It's easy to tell the depth of a well.",
+        "wer": 0.04
       }
     },
     "jon__long": {
       "wer": {
-        "transcript": "Large language models store egg of cache during text generation. Cached key and value vectors from all previous tokens that the model reads back at each step to compute attention. At long context length, this cache can exceed the model weights in memory. TurboQuint compresses it.",
-        "wer": 0.1277
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch.",
+        "wer": 0.0
       }
     },
     "laura__short": {
       "wer": {
-        "transcript": "Hello, this is a test of voice quality after cache compression.",
-        "wer": 0.0833
+        "transcript": "The birch canoes slid on the smooth planks.",
+        "wer": 0.125
       }
     },
     "laura__medium": {
       "wer": {
-        "transcript": "Hello, this message is from Dr. Nourish to Layla, Anki Damion, in the cool weird testing voice. Quality after cache compression on open source, TurboQuent.",
-        "wer": 0.5185
+        "transcript": "The birch canoe slid on the smooth planks, glue the sheet to the dark blue background. It's easy to tell the depth of a well.",
+        "wer": 0.04
       }
     },
     "laura__long": {
       "wer": {
-        "transcript": "Large language models store a HIO cache during text generation, cached key, and value vectors from all previous tokens that the model reads back at each step to compute attention. At long context lengths this cache can exceed the model weights in memory, Turboquant compresses it.",
-        "wer": 0.1277
+        "transcript": "The birch canoe is slid on the smooth planks, glue the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch.",
+        "wer": 0.0417
       }
     },
     "gary__short": {
       "wer": {
-        "transcript": "Hello, this is a test of voice quality after Grakash compression.",
-        "wer": 0.1667
+        "transcript": "The birch canoe slid on the smooth planks.",
+        "wer": 0.0
       }
     },
     "gary__medium": {
       "wer": {
-        "transcript": "Hello, this message is from Dr. Nariesh, Jalela, [redacted] Dawan, Anay Saho, and [redacted]. We are testing voice quality after cache compression on open source...",
-        "wer": 0.2963
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue. Background? It's easy to tell the depth of a well.",
+        "wer": 0.08
       }
     },
     "gary__long": {
       "wer": {
-        "transcript": "Large language models store a for-cache during text generation, cache key and value vectors from all previous tokens that the model reads back at each step to compute attention. At long context lengths, this cache can exceed the model weights in memory. Turboquent compresses it.",
-        "wer": 0.1277
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare dish. Rice is often served in. Round bowls, the juice of lemons, makes fine punch.",
+        "wer": 0.0625
       }
     }
   },
   "tq_4bit": {
     "jon__short": {
       "wer": {
-        "transcript": "Hello, this is a test of voice quality after it computes.",
-        "wer": 0.25
+        "transcript": "The birch canoe slid on the smooth planks.",
+        "wer": 0.0
       },
-      "speaker_similarity_vs_baseline": 0.7009
+      "speaker_similarity_vs_baseline": 0.9165
     },
     "jon__medium": {
       "wer": {
-        "transcript": "Hello, this message is from Dr. Narish. Ojilla, aankit, du'an, an'yoo, an'u kul. We are testing voice quality after WolfCache impression on open source.",
-        "wer": 0.4815
+        "transcript": "The birch canoe slid on the smooth planks. Lue the sheet to the dark blue background. It's easy to tell the depth of a well.",
+        "wer": 0.04
       },
-      "speaker_similarity_vs_baseline": 0.8123
+      "speaker_similarity_vs_baseline": 0.8109
     },
     "jon__long": {
       "wer": {
-        "transcript": "Large language models store a kivash during text generation, cache key and value vectors from all previous tokens that the model reads back at each step to compute attention. At long context lengths this cache can exceed the model weights in Emory. Turboquen compresses it.",
-        "wer": 0.1702
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of well these days a chicken leg is a rare dish. Rice is often served in round bowls the juice of lemons makes fine punch.",
+        "wer": 0.0625
       },
-      "speaker_similarity_vs_baseline": 0.8133
+      "speaker_similarity_vs_baseline": 0.7291
     },
     "laura__short": {
       "wer": {
-        "transcript": "Hello, this is a test of voice quality after Kupi Kesh compression.",
-        "wer": 0.1667
+        "transcript": "The birch canoes slid on the smooth planks.",
+        "wer": 0.125
       },
-      "speaker_similarity_vs_baseline": 0.7458
+      "speaker_similarity_vs_baseline": 0.7788
     },
     "laura__medium": {
       "wer": {
-        "transcript": "Hello, this message is from Dr. [redacted] Jalayla, Anki, Dawan Sarvu and Mookul. We are testing voice quality after clock late. Insertion on open source, Turbo.",
-        "wer": 0.4074
+        "transcript": "The birch canoe slid on the smooth planks, glued the sheet to the dark blue background. It's easy to tell the depth of a well.",
+        "wer": 0.08
       },
-      "speaker_similarity_vs_baseline": 0.7535
+      "speaker_similarity_vs_baseline": 0.7612
     },
     "laura__long": {
       "wer": {
-        "transcript": "Large language model story carry cache during text generation, cached key and value vectors from all previous tokens that the model reads back at each step to compute attention. At long context, lengths this cache can exceed the model weights in memory. Turbo. Ground compresses.",
-        "wer": 0.234
+        "transcript": "The birch canoe slid on the smooth planks, glued the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch.",
+        "wer": 0.0417
       },
-      "speaker_similarity_vs_baseline": 0.8254
+      "speaker_similarity_vs_baseline": 0.4266
     },
     "gary__short": {
       "wer": {
-        "transcript": "Hello, this is a test of voice quality after both cache compression.",
-        "wer": 0.0833
+        "transcript": "The birch canoe slid on smooth planks.",
+        "wer": 0.125
       },
-      "speaker_similarity_vs_baseline": 0.8609
+      "speaker_similarity_vs_baseline": 0.8779
     },
     "gary__medium": {
       "wer": {
-        "transcript": "Hello, this message is from Dr. Nourish. Jillianna [redacted] Dawn, and there's an... ...ye casting voice. Quality is after K. Cache compression on open...",
-        "wer": 0.5556
+        "transcript": "The birch canoe slid on the smooth planks, glued the sheet to the dark blue background. It's easy to tell the depth of a well.",
+        "wer": 0.08
       },
-      "speaker_similarity_vs_baseline": 0.5677
+      "speaker_similarity_vs_baseline": 0.5217
     },
     "gary__long": {
       "wer": {
-        "transcript": "Large language models store a cache during text generation, cached key and value vectors from all previous tokens that the model reads back at each step to compute attention. At long context lengths, this cache can exceed the model weights in memory.",
-        "wer": 0.1277
+        "transcript": "The birch canoes slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch.",
+        "wer": 0.0208
       },
-      "speaker_similarity_vs_baseline": 0.7865
+      "speaker_similarity_vs_baseline": 0.6128
     }
   },
   "tq_3bit": {
     "jon__short": {
       "wer": {
-        "transcript": "Hello, this is a test of voice quality after Dukas cache compression.",
-        "wer": 0.0833
+        "transcript": "The birch canoe slid on the smooth planks.",
+        "wer": 0.0
       },
-      "speaker_similarity_vs_baseline": 0.6987
+      "speaker_similarity_vs_baseline": 0.8998
     },
     "jon__medium": {
       "wer": {
-        "transcript": "Hello, this message is from Dr. Rish, Jilela, [redacted], [redacted], Anubhay and Mughal. We are testing voice quality after cache compression on open source. TurboKwan.",
-        "wer": 0.3333
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well.",
+        "wer": 0.0
       },
-      "speaker_similarity_vs_baseline": 0.7896
+      "speaker_similarity_vs_baseline": 0.7795
     },
     "jon__long": {
       "wer": {
-        "transcript": "Large language models store A-Bocache during text generation, cached key and value vectors, from all previous tokens that the model reads back at each step to compute attention.",
-        "wer": 0.4681
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare dish rice is often served in round bowls. The juice of lemons makes fine punch.",
+        "wer": 0.0208
       },
-      "speaker_similarity_vs_baseline": 0.834
+      "speaker_similarity_vs_baseline": 0.6459
     },
     "laura__short": {
       "wer": {
-        "transcript": "Hello, this is a test of voice quality after have cache compression.",
-        "wer": 0.0833
+        "transcript": "the birch canoes slid on the smooth planks.",
+        "wer": 0.125
       },
-      "speaker_similarity_vs_baseline": 0.7551
+      "speaker_similarity_vs_baseline": 0.8466
     },
     "laura__medium": {
       "wer": {
-        "transcript": "Hello, this message is from Dr. Nar Shillala Angukul. We are testing voice. Quality after cache compression on open source. Turbo.",
-        "wer": 0.4444
+        "transcript": "The birch canoes slid on the smooth planks, glued the sheet to the dark blue background. It's easy to tell the depth.",
+        "wer": 0.28
       },
-      "speaker_similarity_vs_baseline": 0.6783
+      "speaker_similarity_vs_baseline": 0.8195
     },
     "laura__long": {
       "wer": {
-        "transcript": "Large language models store A, meaning cached during text generation, cached key, and value vectors from all previous tokens that the model reads back at each step to compute attention.",
-        "wer": 0.4681
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well these days. A chicken leg is a rare dish. Rice is often served in round bowls.",
+        "wer": 0.1875
       },
-      "speaker_similarity_vs_baseline": 0.8289
+      "speaker_similarity_vs_baseline": 0.5396
     },
     "gary__short": {
       "wer": {
-        "transcript": "Hello, this is a test of voice quality after 4-cash compression.",
-        "wer": 0.1667
+        "transcript": "The birch canoe slid on the smooth planks.",
+        "wer": 0.0
       },
-      "speaker_similarity_vs_baseline": 0.6793
+      "speaker_similarity_vs_baseline": 0.8064
     },
     "gary__medium": {
       "wer": {
-        "transcript": "Hello, this message is from Dr. Nair, Jalayla [redacted]. We are testing voice quality after current cache compression on open source TurboCrant.",
-        "wer": 0.3333
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well.",
+        "wer": 0.0
       },
-      "speaker_similarity_vs_baseline": 0.5052
+      "speaker_similarity_vs_baseline": 0.5073
     },
     "gary__long": {
       "wer": {
-        "transcript": "Large language models store of A, cache during text generation, cache key and value vectors from all previous tokens that the model reads back at each step to compute attention.",
-        "wer": 0.4468
+        "transcript": "The birch canoes slid on the smooth planks, glued the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare... ...dus... ...er... ...er... ...er... ...er... ...er... ...er... ...er... ...er... ...er... ...er... ...er... ...er... ...er... ...er... ...er... ...er...",
+        "wer": 0.4375
       },
-      "speaker_similarity_vs_baseline": 0.7584
+      "speaker_similarity_vs_baseline": 0.5732
     }
   },
   "tq_2bit": {
     "jon__short": {
       "wer": {
-        "transcript": "Hello, this is a test of voice quality after Froon.",
-        "wer": 0.25
+        "transcript": "The birch canoe slid on the smooth planks.",
+        "wer": 0.0
       },
-      "speaker_similarity_vs_baseline": 0.6461
+      "speaker_similarity_vs_baseline": 0.8767
     },
     "jon__medium": {
       "wer": {
-        "transcript": "Hello, this message is from Dr. Narish, Jalila, and Kedawan Anukul. We are testing voice quality after... Question on open source.",
-        "wer": 0.5185
+        "transcript": "The birch canoe slid on the smooth blue sheet to the dark blue background. It's easy to tell the depth of a well.",
+        "wer": 0.12
       },
-      "speaker_similarity_vs_baseline": 0.6345
+      "speaker_similarity_vs_baseline": 0.8035
     },
     "jon__long": {
       "wer": {
-        "transcript": "Large language models store a cache during test generation cache key and value vectors from all previous tokens that the model reads back at each step to compute attention. At long context, lengths this cache can exceed the model weights in",
-        "wer": 0.2128
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of well. These days a chicken leg is a rare dish. Rise is off.",
+        "wer": 0.2917
       },
-      "speaker_similarity_vs_baseline": 0.8204
+      "speaker_similarity_vs_baseline": 0.6408
     },
     "laura__short": {
       "wer": {
-        "transcript": "Hello, this is a test of voice quality after Kekeshe compression.",
-        "wer": 0.1667
+        "transcript": "the birch canoes slid on the smooth planks.",
+        "wer": 0.125
       },
-      "speaker_similarity_vs_baseline": 0.7469
+      "speaker_similarity_vs_baseline": 0.7901
     },
     "laura__medium": {
       "wer": {
-        "transcript": "Hello, this message is from Dr. Nair. Jelilil Anki, Dabon Angil Ak. Hoei Anakash, Kuyet Sta. Anin kol Avechi Gattani.",
-        "wer": 0.7778
+        "transcript": "The birch canoe slid on the smooth links glue the sheet to the dark blue background. It's easy to tell the depths of a well.",
+        "wer": 0.08
       },
-      "speaker_similarity_vs_baseline": 0.542
+      "speaker_similarity_vs_baseline": 0.833
     },
     "laura__long": {
       "wer": {
-        "transcript": "Large language models store Apple Cash during taxed generation, cached key and value vectors from all previous tokens, that the model reads back at each step to compute attention. At long contexts, lengths, this cache can exceed the model weights and memory.",
-        "wer": 0.2553
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of well. These days a chicken leg is a rare dish. Rice is often chur's.",
+        "wer": 0.25
       },
-      "speaker_similarity_vs_baseline": 0.664
+      "speaker_similarity_vs_baseline": 0.6175
     },
     "gary__short": {
       "wer": {
-        "transcript": "Hello! This is the test of Miesquality after... Ookash compression!",
-        "wer": 0.6667
+        "transcript": "The birch canoe slid on the smooth planks.",
+        "wer": 0.0
       },
-      "speaker_similarity_vs_baseline": 0.6431
+      "speaker_similarity_vs_baseline": 0.8324
     },
     "gary__medium": {
       "wer": {
-        "transcript": "Hello, this message is from Zoser. Not so high. Whoa, whoa.",
-        "wer": 0.8148
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue. Boke. Blue background. It's easy to tell.",
+        "wer": 0.32
       },
-      "speaker_similarity_vs_baseline": 0.4183
+      "speaker_similarity_vs_baseline": 0.5469
     },
     "gary__long": {
       "wer": {
-        "transcript": "Large language models store a h during text generation, cache key and value vectors from all previous tokens that the model reads back at each step to compute attention. At long context length,",
-        "wer": 0.383
+        "transcript": "The birch canoe slid on the smooth planks, ghoul the sheet to the dark blue plus bull, now one stays a-germ. The acklin deserve this rude juice of terror.",
+        "wer": 0.6875
       },
-      "speaker_similarity_vs_baseline": 0.7219
+      "speaker_similarity_vs_baseline": 0.5713
     }
   }
 }

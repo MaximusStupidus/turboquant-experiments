@@ -12,12 +12,16 @@ between baseline and quantized generations of the same prompt.
 
 ## Headline numbers
 
+Using **Harvard Sentences** (IEEE 1969, the standard phonetically-
+balanced TTS benchmark) — common English words, no proper nouns,
+no acronyms.
+
 | Config | Mean WER | Median WER | Mean spk-sim vs fp16 | Mean RTF | Peak GPU |
 |---|---:|---:|---:|---:|---:|
-| fp16 baseline | **0.22** | 0.13 | — | 1.45 | 3.0 GB |
-| TurboQuant 4-bit | 0.28 | 0.23 | 0.76 | 2.62 | 3.0 GB |
-| TurboQuant 3-bit | 0.31 | 0.33 | 0.73 | 2.62 | 3.0 GB |
-| TurboQuant 2-bit | **0.45** | 0.38 | 0.65 | 2.88 | 3.0 GB |
+| fp16 baseline | **0.04** (4%) | 0.04 | — | 1.45 | 3.0 GB |
+| TurboQuant 4-bit | 0.06 | 0.06 | 0.72 | 2.62 | 3.0 GB |
+| TurboQuant 3-bit | 0.12 | 0.02 | 0.71 | 2.62 | 3.0 GB |
+| TurboQuant 2-bit | **0.21** (21%) | 0.13 | 0.72 | 2.88 | 3.0 GB |
 
 ![WER](../speech-tts-improvements/parler/results/plots/wer.png)
 ![Speaker similarity](../speech-tts-improvements/parler/results/plots/speaker_similarity.png)
@@ -29,10 +33,10 @@ like Part 1's perplexity-vs-bits curve on Llama-3.1-8B:
 
 | Config | Part 1 (PPL vs fp16) | Part 2 (WER vs fp16) | Part 2 (Spk-sim vs fp16) |
 |---|---|---|---|
-| fp16 | 5.51 | 0.22 | — |
-| 4-bit | +0.03 (5.54) | +0.06 (0.28) | 0.76 |
-| 3-bit | +0.15 (5.66) | +0.10 (0.31) | 0.73 |
-| 2-bit | +0.56 (6.07) | +0.24 (0.45) | 0.65 |
+| fp16 | 5.51 | 0.04 | — |
+| 4-bit | +0.03 (5.54) | +0.02 (0.06) | 0.72 |
+| 3-bit | +0.15 (5.66) | +0.08 (0.12) | 0.71 |
+| 2-bit | +0.56 (6.07) | +0.17 (0.21) | 0.72 |
 
 Both experiments show compression cost *accelerates* at 2-bit: the
 4→3-bit gap is small, the 3→2-bit gap is large. This is the
@@ -41,19 +45,30 @@ the codebook has enough levels to track the Beta-distributed values
 accurately; at 2-bit (4 levels) the quantization error starts
 dominating.
 
-## Methodology note — why the first sweep didn't show this
+## Methodology fixes (three rounds)
 
-The first sweep set `temperature=0.7` (a "conservative" choice on my
-part); the second sweep used Parler's native `temperature=1.0` from
-its generation config. The difference is massive: on
-`jon__long`, probe WER went from 0.85 at temp=0.7 to 0.13 at temp=1.0.
-Lowering temperature biases sampling toward top-probability tokens,
-which for this model turn out to be lower-quality — Parler was
-trained with temp=1.0 in the pipeline and that's the distribution
-the audio codec expects. Every metric in the table above was
-regenerated after the temperature fix; the previous version of this
-doc (and `metrics.json`) contained noisy, buzz-padded results that
-didn't reflect the algorithm.
+This result came out of three corrections, each recorded in
+`notes/part2-wer-limitation.md`:
+
+1. **`max_length` instead of `max_new_tokens`.** Parler's custom
+   `generate()` ignores `max_new_tokens` and uses
+   `generation_config.max_length` (default 2580 ≈ 30 s). Our first
+   sweep omitted both, so every clip was padded with 25 s of
+   non-speech buzz that Whisper couldn't penetrate — WER pinned
+   at 0.95 on baseline.
+2. **`temperature=1.0` (Parler's native default), not 0.7.** We
+   initially lowered temperature to "tighten" sampling; in practice
+   this biased toward high-probability-but-low-quality tokens.
+   Probe on `jon__long`: WER 0.85 at t=0.7 → 0.13 at t=1.0.
+3. **Harvard sentences instead of TurboQuant-themed prompts.** The
+   original prompts contained proper nouns (names) and acronyms
+   ("KV cache") that Whisper consistently mis-transcribes even on
+   clean fp16 audio, inflating WER across all configs. Harvard
+   Sentences (IEEE 1969) use common English words and are the
+   standard benchmark for TTS/ASR quality eval.
+
+With all three fixes, baseline WER dropped from ceiling (0.95) to a
+realistic 0.04, and the quantization effect became visible.
 
 ## What the experiment shows
 
@@ -67,27 +82,37 @@ no OOM, no cache errors.
 
 ### 2. 4-bit is ~free. 2-bit has a real cost.
 
-WER at 4-bit (0.28) is only 0.06 above fp16 (0.22) — essentially
-within sampling noise. At 3-bit we pay 0.10, and at 2-bit we pay
-0.24. The "it's basically free at 4-bit" story from Part 1 holds.
+WER at 4-bit (0.06) is only 0.02 above fp16 (0.04) — the 4-bit
+transcripts are essentially indistinguishable from baseline. At
+3-bit we pay 0.08, and at 2-bit we pay 0.17 (a ~5× jump in error
+rate vs baseline). The "it's basically free at 4-bit" story from
+Part 1 holds. Example at 2-bit where quality breaks down
+audibly — `gary__long` transcript: *"The birch canoe slid on the
+smooth planks, ghoul the sheet to the dark blue plus bull, now
+one stays a-germ. The acklin deserve this rude juice of terror."*
 
-### 3. Voice identity degrades gracefully.
+### 3. Voice identity is robust across bit levels.
 
-Speaker similarity drops 0.76 → 0.73 → 0.65 across 4/3/2-bit — a
-slow, monotonic drift rather than a cliff. Even at 2-bit the voice
-is ~65% similar to the fp16 original, meaning the speaker is still
-recognisable but with noticeable timbre shifts. Listen to
-`laura__long` across the four configs in `audio_comparison.html`:
-the same voice remains identifiable, with increasing roughness.
+Speaker similarity sits at ~0.72 at every bit level, essentially
+flat. Voice identity is *not* what quantization destroys —
+intelligibility is. This makes sense because the voice prompt
+(description → speaker embedding) is consumed before any cache
+generation happens, so speaker identity comes from the text
+encoder + first few decoder steps, which stay in the 128-token
+residual buffer even for long clips. What quantization hurts is
+the continuous audio-token generation *after* the voice is
+established.
 
 ### 4. Short prompts are robust across all bit levels.
 
-WER on short texts (`short` row) stays 0.08–0.25 across 4/3/2-bit
-— consistent with the 128-token residual buffer. Short clips
-(3–4 s ≈ ~300 audio frames) have most of their generation live in
-the residual buffer, so the cache never actually gets quantized
-for those tokens. The quantization effect only shows up on medium
-(~13 s) and long (~20–28 s) clips that overflow the buffer.
+WER on short texts (`short` row) stays 0.0–0.13 across 4/3/2-bit
+— the short Harvard sentence "The birch canoe slid on the smooth
+planks" transcribes perfectly or near-perfectly at every bit
+level. Short clips (~3–4 s ≈ ~300 audio frames) have most of their
+generation live in the 128-token residual buffer, so the cache
+never actually gets quantized for those tokens. The degradation
+signal concentrates on medium (~8 s) and long (~20 s) clips that
+overflow the buffer.
 
 ### 5. Memory parity.
 

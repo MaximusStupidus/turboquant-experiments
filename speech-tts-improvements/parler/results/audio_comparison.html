@@ -218,7 +218,7 @@ footer a:hover { text-decoration: underline; }
         <tr><th>Config</th><th>Mean WER</th><th>Mean spk-sim</th></tr>
       </thead>
       <tbody>
-        <tr><td>fp16 baseline</td><td>0.22</td><td>—</td></tr><tr><td>TurboQuant 4-bit</td><td>0.28</td><td>0.76</td></tr><tr><td>TurboQuant 3-bit</td><td>0.31</td><td>0.73</td></tr><tr><td>TurboQuant 2-bit</td><td>0.45</td><td>0.65</td></tr>
+        <tr><td>fp16 baseline</td><td>0.04</td><td>—</td></tr><tr><td>TurboQuant 4-bit</td><td>0.06</td><td>0.72</td></tr><tr><td>TurboQuant 3-bit</td><td>0.12</td><td>0.71</td></tr><tr><td>TurboQuant 2-bit</td><td>0.21</td><td>0.72</td></tr>
       </tbody>
     </table>
     <div class="legend">
@@ -243,183 +243,183 @@ footer a:hover { text-decoration: underline; }
   </div>
 
 <div class="row">
-  <div class="row-label"><div class="voice">jon</div><div class="text-kind">short</div><div class="reference">&ldquo;Hello, this is a test of voice quality after KV cache compression.&rdquo;</div></div>
+  <div class="row-label"><div class="voice">jon</div><div class="text-kind">short</div><div class="reference">&ldquo;The birch canoe slid on the smooth planks.&rdquo;</div></div>
     <div class="cell">
       <audio controls preload="none" src="baseline/jon__short.wav"></audio>
-      <div class="meta"><span class="meta-chip dur">3.2s</span><span class="meta-chip wer good">WER 0.08</span></div>
-      <div class="transcript">&ldquo;Hello, this is a test of voice quality after cache compression.&rdquo;</div>
+      <div class="meta"><span class="meta-chip dur">2.5s</span><span class="meta-chip wer good">WER 0.00</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on the smooth planks.&rdquo;</div>
     </div>    <div class="cell">
       <audio controls preload="none" src="tq_4bit/jon__short.wav"></audio>
-      <div class="meta"><span class="meta-chip dur">2.8s</span><span class="meta-chip wer good">WER 0.25</span><span class="meta-chip sim mid">SpkSim 0.70</span></div>
-      <div class="transcript">&ldquo;Hello, this is a test of voice quality after it computes.&rdquo;</div>
+      <div class="meta"><span class="meta-chip dur">2.4s</span><span class="meta-chip wer good">WER 0.00</span><span class="meta-chip sim good">SpkSim 0.92</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on the smooth planks.&rdquo;</div>
     </div>    <div class="cell">
       <audio controls preload="none" src="tq_3bit/jon__short.wav"></audio>
-      <div class="meta"><span class="meta-chip dur">3.5s</span><span class="meta-chip wer good">WER 0.08</span><span class="meta-chip sim mid">SpkSim 0.70</span></div>
-      <div class="transcript">&ldquo;Hello, this is a test of voice quality after Dukas cache compression.&rdquo;</div>
+      <div class="meta"><span class="meta-chip dur">2.5s</span><span class="meta-chip wer good">WER 0.00</span><span class="meta-chip sim good">SpkSim 0.90</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on the smooth planks.&rdquo;</div>
     </div>    <div class="cell">
       <audio controls preload="none" src="tq_2bit/jon__short.wav"></audio>
-      <div class="meta"><span class="meta-chip dur">2.6s</span><span class="meta-chip wer good">WER 0.25</span><span class="meta-chip sim mid">SpkSim 0.65</span></div>
-      <div class="transcript">&ldquo;Hello, this is a test of voice quality after Froon.&rdquo;</div>
+      <div class="meta"><span class="meta-chip dur">2.6s</span><span class="meta-chip wer good">WER 0.00</span><span class="meta-chip sim good">SpkSim 0.88</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on the smooth planks.&rdquo;</div>
     </div>
 </div>
 <div class="row">
-  <div class="row-label"><div class="voice">jon</div><div class="text-kind">medium</div><div class="reference">&ldquo;Hello, this message is from Dr. [redacted], [redacted], [redacted], and [redacted]. We are testing voice quality after KV cache compression on open source TurboQuant.&rdquo;</div></div>
+  <div class="row-label"><div class="voice">jon</div><div class="text-kind">medium</div><div class="reference">&ldquo;The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well.&rdquo;</div></div>
     <div class="cell">
       <audio controls preload="none" src="baseline/jon__medium.wav"></audio>
-      <div class="meta"><span class="meta-chip dur">9.4s</span><span class="meta-chip wer mid">WER 0.41</span></div>
-      <div class="transcript">&ldquo;Hello, this message is from Dr. Nersh, Jalua, Otsohu, and Muehl. We are testing voice quality after D.K. Cash on open source TurboQuint.&rdquo;</div>
+      <div class="meta"><span class="meta-chip dur">7.0s</span><span class="meta-chip wer good">WER 0.04</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on the smooth planks, glue the sheet to the dark blue background. It's easy to tell the depth of a well.&rdquo;</div>
     </div>    <div class="cell">
       <audio controls preload="none" src="tq_4bit/jon__medium.wav"></audio>
-      <div class="meta"><span class="meta-chip dur">10.0s</span><span class="meta-chip wer mid">WER 0.48</span><span class="meta-chip sim good">SpkSim 0.81</span></div>
-      <div class="transcript">&ldquo;Hello, this message is from Dr. Narish. Ojilla, aankit, du'an, an'yoo, an'u kul. We are testing voice quality after WolfCache impression on open source.&rdquo;</div>
+      <div class="meta"><span class="meta-chip dur">7.1s</span><span class="meta-chip wer good">WER 0.04</span><span class="meta-chip sim good">SpkSim 0.81</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on the smooth planks. Lue the sheet to the dark blue background. It's easy to tell the depth of a well.&rdquo;</div>
     </div>    <div class="cell">
       <audio controls preload="none" src="tq_3bit/jon__medium.wav"></audio>
-      <div class="meta"><span class="meta-chip dur">10.6s</span><span class="meta-chip wer mid">WER 0.33</span><span class="meta-chip sim good">SpkSim 0.79</span></div>
-      <div class="transcript">&ldquo;Hello, this message is from Dr. Rish, Jilela, [redacted], [redacted], Anubhay and Mughal. We are testing voice quality after cache compression on open source. TurboKwan.&rdquo;</div>
+      <div class="meta"><span class="meta-chip dur">7.9s</span><span class="meta-chip wer good">WER 0.00</span><span class="meta-chip sim good">SpkSim 0.78</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well.&rdquo;</div>
     </div>    <div class="cell">
       <audio controls preload="none" src="tq_2bit/jon__medium.wav"></audio>
-      <div class="meta"><span class="meta-chip dur">10.8s</span><span class="meta-chip wer mid">WER 0.52</span><span class="meta-chip sim mid">SpkSim 0.63</span></div>
-      <div class="transcript">&ldquo;Hello, this message is from Dr. Narish, Jalila, and Kedawan Anukul. We are testing voice quality after... Question on open source.&rdquo;</div>
+      <div class="meta"><span class="meta-chip dur">7.8s</span><span class="meta-chip wer good">WER 0.12</span><span class="meta-chip sim good">SpkSim 0.80</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on the smooth blue sheet to the dark blue background. It's easy to tell the depth of a well.&rdquo;</div>
     </div>
 </div>
 <div class="row">
-  <div class="row-label"><div class="voice">jon</div><div class="text-kind">long</div><div class="reference">&ldquo;Large language models store a KV cache during text generation — cached Key and Value vectors from all previous tokens that the model reads back at each step to compute attention. At long context lengths, this cache can exceed the model weights in memory. TurboQuant compresses it.&rdquo;</div></div>
+  <div class="row-label"><div class="voice">jon</div><div class="text-kind">long</div><div class="reference">&ldquo;The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch.&rdquo;</div></div>
     <div class="cell">
       <audio controls preload="none" src="baseline/jon__long.wav"></audio>
-      <div class="meta"><span class="meta-chip dur">15.6s</span><span class="meta-chip wer good">WER 0.13</span></div>
-      <div class="transcript">&ldquo;Large language models store egg of cache during text generation. Cached key and value vectors from all previous tokens that the model reads back at each step to compute attention. At long context length, this cache can exceed the model weights in memory. TurboQuint compresses it.&rdquo;</div>
+      <div class="meta"><span class="meta-chip dur">14.4s</span><span class="meta-chip wer good">WER 0.00</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch.&rdquo;</div>
     </div>    <div class="cell">
       <audio controls preload="none" src="tq_4bit/jon__long.wav"></audio>
-      <div class="meta"><span class="meta-chip dur">15.6s</span><span class="meta-chip wer good">WER 0.17</span><span class="meta-chip sim good">SpkSim 0.81</span></div>
-      <div class="transcript">&ldquo;Large language models store a kivash during text generation, cache key and value vectors from all previous tokens that the model reads back at each step to compute attention. At long context lengths this cache can exceed the model weights in Emory. Turboquen compresses it.&rdquo;</div>
+      <div class="meta"><span class="meta-chip dur">14.2s</span><span class="meta-chip wer good">WER 0.06</span><span class="meta-chip sim mid">SpkSim 0.73</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of well these days a chicken leg is a rare dish. Rice is often served in round bowls the juice of lemons makes fine punch.&rdquo;</div>
     </div>    <div class="cell">
       <audio controls preload="none" src="tq_3bit/jon__long.wav"></audio>
-      <div class="meta"><span class="meta-chip dur">11.5s</span><span class="meta-chip wer mid">WER 0.47</span><span class="meta-chip sim good">SpkSim 0.83</span></div>
-      <div class="transcript">&ldquo;Large language models store A-Bocache during text generation, cached key and value vectors, from all previous tokens that the model reads back at each step to compute attention.&rdquo;</div>
+      <div class="meta"><span class="meta-chip dur">16.8s</span><span class="meta-chip wer good">WER 0.02</span><span class="meta-chip sim mid">SpkSim 0.65</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare dish rice is often served in round bowls. The juice of lemons makes fine punch.&rdquo;</div>
     </div>    <div class="cell">
       <audio controls preload="none" src="tq_2bit/jon__long.wav"></audio>
-      <div class="meta"><span class="meta-chip dur">17.0s</span><span class="meta-chip wer good">WER 0.21</span><span class="meta-chip sim good">SpkSim 0.82</span></div>
-      <div class="transcript">&ldquo;Large language models store a cache during test generation cache key and value vectors from all previous tokens that the model reads back at each step to compute attention. At long context, lengths this cache can exceed the model weights in&rdquo;</div>
+      <div class="meta"><span class="meta-chip dur">14.4s</span><span class="meta-chip wer good">WER 0.29</span><span class="meta-chip sim mid">SpkSim 0.64</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of well. These days a chicken leg is a rare dish. Rise is off.&rdquo;</div>
     </div>
 </div>
 <div class="row">
-  <div class="row-label"><div class="voice">laura</div><div class="text-kind">short</div><div class="reference">&ldquo;Hello, this is a test of voice quality after KV cache compression.&rdquo;</div></div>
+  <div class="row-label"><div class="voice">laura</div><div class="text-kind">short</div><div class="reference">&ldquo;The birch canoe slid on the smooth planks.&rdquo;</div></div>
     <div class="cell">
       <audio controls preload="none" src="baseline/laura__short.wav"></audio>
-      <div class="meta"><span class="meta-chip dur">3.6s</span><span class="meta-chip wer good">WER 0.08</span></div>
-      <div class="transcript">&ldquo;Hello, this is a test of voice quality after cache compression.&rdquo;</div>
+      <div class="meta"><span class="meta-chip dur">3.0s</span><span class="meta-chip wer good">WER 0.12</span></div>
+      <div class="transcript">&ldquo;The birch canoes slid on the smooth planks.&rdquo;</div>
     </div>    <div class="cell">
       <audio controls preload="none" src="tq_4bit/laura__short.wav"></audio>
-      <div class="meta"><span class="meta-chip dur">3.6s</span><span class="meta-chip wer good">WER 0.17</span><span class="meta-chip sim mid">SpkSim 0.75</span></div>
-      <div class="transcript">&ldquo;Hello, this is a test of voice quality after Kupi Kesh compression.&rdquo;</div>
+      <div class="meta"><span class="meta-chip dur">2.8s</span><span class="meta-chip wer good">WER 0.12</span><span class="meta-chip sim good">SpkSim 0.78</span></div>
+      <div class="transcript">&ldquo;The birch canoes slid on the smooth planks.&rdquo;</div>
     </div>    <div class="cell">
       <audio controls preload="none" src="tq_3bit/laura__short.wav"></audio>
-      <div class="meta"><span class="meta-chip dur">4.1s</span><span class="meta-chip wer good">WER 0.08</span><span class="meta-chip sim good">SpkSim 0.76</span></div>
-      <div class="transcript">&ldquo;Hello, this is a test of voice quality after have cache compression.&rdquo;</div>
+      <div class="meta"><span class="meta-chip dur">3.0s</span><span class="meta-chip wer good">WER 0.12</span><span class="meta-chip sim good">SpkSim 0.85</span></div>
+      <div class="transcript">&ldquo;the birch canoes slid on the smooth planks.&rdquo;</div>
     </div>    <div class="cell">
       <audio controls preload="none" src="tq_2bit/laura__short.wav"></audio>
-      <div class="meta"><span class="meta-chip dur">4.1s</span><span class="meta-chip wer good">WER 0.17</span><span class="meta-chip sim mid">SpkSim 0.75</span></div>
-      <div class="transcript">&ldquo;Hello, this is a test of voice quality after Kekeshe compression.&rdquo;</div>
+      <div class="meta"><span class="meta-chip dur">2.8s</span><span class="meta-chip wer good">WER 0.12</span><span class="meta-chip sim good">SpkSim 0.79</span></div>
+      <div class="transcript">&ldquo;the birch canoes slid on the smooth planks.&rdquo;</div>
     </div>
 </div>
 <div class="row">
-  <div class="row-label"><div class="voice">laura</div><div class="text-kind">medium</div><div class="reference">&ldquo;Hello, this message is from Dr. [redacted], [redacted], [redacted], and [redacted]. We are testing voice quality after KV cache compression on open source TurboQuant.&rdquo;</div></div>
+  <div class="row-label"><div class="voice">laura</div><div class="text-kind">medium</div><div class="reference">&ldquo;The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well.&rdquo;</div></div>
     <div class="cell">
       <audio controls preload="none" src="baseline/laura__medium.wav"></audio>
-      <div class="meta"><span class="meta-chip dur">12.6s</span><span class="meta-chip wer mid">WER 0.52</span></div>
-      <div class="transcript">&ldquo;Hello, this message is from Dr. Nourish to Layla, Anki Damion, in the cool weird testing voice. Quality after cache compression on open source, TurboQuent.&rdquo;</div>
+      <div class="meta"><span class="meta-chip dur">7.8s</span><span class="meta-chip wer good">WER 0.04</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on the smooth planks, glue the sheet to the dark blue background. It's easy to tell the depth of a well.&rdquo;</div>
     </div>    <div class="cell">
       <audio controls preload="none" src="tq_4bit/laura__medium.wav"></audio>
-      <div class="meta"><span class="meta-chip dur">12.4s</span><span class="meta-chip wer mid">WER 0.41</span><span class="meta-chip sim good">SpkSim 0.75</span></div>
-      <div class="transcript">&ldquo;Hello, this message is from Dr. [redacted] Jalayla, Anki, Dawan Sarvu and Mookul. We are testing voice quality after clock late. Insertion on open source, Turbo.&rdquo;</div>
+      <div class="meta"><span class="meta-chip dur">8.0s</span><span class="meta-chip wer good">WER 0.08</span><span class="meta-chip sim good">SpkSim 0.76</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on the smooth planks, glued the sheet to the dark blue background. It's easy to tell the depth of a well.&rdquo;</div>
     </div>    <div class="cell">
       <audio controls preload="none" src="tq_3bit/laura__medium.wav"></audio>
-      <div class="meta"><span class="meta-chip dur">12.4s</span><span class="meta-chip wer mid">WER 0.44</span><span class="meta-chip sim mid">SpkSim 0.68</span></div>
-      <div class="transcript">&ldquo;Hello, this message is from Dr. Nar Shillala Angukul. We are testing voice. Quality after cache compression on open source. Turbo.&rdquo;</div>
+      <div class="meta"><span class="meta-chip dur">7.2s</span><span class="meta-chip wer good">WER 0.28</span><span class="meta-chip sim good">SpkSim 0.82</span></div>
+      <div class="transcript">&ldquo;The birch canoes slid on the smooth planks, glued the sheet to the dark blue background. It's easy to tell the depth.&rdquo;</div>
     </div>    <div class="cell">
       <audio controls preload="none" src="tq_2bit/laura__medium.wav"></audio>
-      <div class="meta"><span class="meta-chip dur">13.0s</span><span class="meta-chip wer bad">WER 0.78</span><span class="meta-chip sim mid">SpkSim 0.54</span></div>
-      <div class="transcript">&ldquo;Hello, this message is from Dr. Nair. Jelilil Anki, Dabon Angil Ak. Hoei Anakash, Kuyet Sta. Anin kol Avechi Gattani.&rdquo;</div>
+      <div class="meta"><span class="meta-chip dur">9.4s</span><span class="meta-chip wer good">WER 0.08</span><span class="meta-chip sim good">SpkSim 0.83</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on the smooth links glue the sheet to the dark blue background. It's easy to tell the depths of a well.&rdquo;</div>
     </div>
 </div>
 <div class="row">
-  <div class="row-label"><div class="voice">laura</div><div class="text-kind">long</div><div class="reference">&ldquo;Large language models store a KV cache during text generation — cached Key and Value vectors from all previous tokens that the model reads back at each step to compute attention. At long context lengths, this cache can exceed the model weights in memory. TurboQuant compresses it.&rdquo;</div></div>
+  <div class="row-label"><div class="voice">laura</div><div class="text-kind">long</div><div class="reference">&ldquo;The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch.&rdquo;</div></div>
     <div class="cell">
       <audio controls preload="none" src="baseline/laura__long.wav"></audio>
-      <div class="meta"><span class="meta-chip dur">18.3s</span><span class="meta-chip wer good">WER 0.13</span></div>
-      <div class="transcript">&ldquo;Large language models store a HIO cache during text generation, cached key, and value vectors from all previous tokens that the model reads back at each step to compute attention. At long context lengths this cache can exceed the model weights in memory, Turboquant compresses it.&rdquo;</div>
+      <div class="meta"><span class="meta-chip dur">16.1s</span><span class="meta-chip wer good">WER 0.04</span></div>
+      <div class="transcript">&ldquo;The birch canoe is slid on the smooth planks, glue the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch.&rdquo;</div>
     </div>    <div class="cell">
       <audio controls preload="none" src="tq_4bit/laura__long.wav"></audio>
-      <div class="meta"><span class="meta-chip dur">18.8s</span><span class="meta-chip wer good">WER 0.23</span><span class="meta-chip sim good">SpkSim 0.83</span></div>
-      <div class="transcript">&ldquo;Large language model story carry cache during text generation, cached key and value vectors from all previous tokens that the model reads back at each step to compute attention. At long context, lengths this cache can exceed the model weights in memory. Turbo. Ground compresses.&rdquo;</div>
+      <div class="meta"><span class="meta-chip dur">17.8s</span><span class="meta-chip wer good">WER 0.04</span><span class="meta-chip sim bad">SpkSim 0.43</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on the smooth planks, glued the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch.&rdquo;</div>
     </div>    <div class="cell">
       <audio controls preload="none" src="tq_3bit/laura__long.wav"></audio>
-      <div class="meta"><span class="meta-chip dur">11.5s</span><span class="meta-chip wer mid">WER 0.47</span><span class="meta-chip sim good">SpkSim 0.83</span></div>
-      <div class="transcript">&ldquo;Large language models store A, meaning cached during text generation, cached key, and value vectors from all previous tokens that the model reads back at each step to compute attention.&rdquo;</div>
+      <div class="meta"><span class="meta-chip dur">15.6s</span><span class="meta-chip wer good">WER 0.19</span><span class="meta-chip sim mid">SpkSim 0.54</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well these days. A chicken leg is a rare dish. Rice is often served in round bowls.&rdquo;</div>
     </div>    <div class="cell">
       <audio controls preload="none" src="tq_2bit/laura__long.wav"></audio>
-      <div class="meta"><span class="meta-chip dur">16.1s</span><span class="meta-chip wer good">WER 0.26</span><span class="meta-chip sim mid">SpkSim 0.66</span></div>
-      <div class="transcript">&ldquo;Large language models store Apple Cash during taxed generation, cached key and value vectors from all previous tokens, that the model reads back at each step to compute attention. At long contexts, lengths, this cache can exceed the model weights and memory.&rdquo;</div>
+      <div class="meta"><span class="meta-chip dur">15.6s</span><span class="meta-chip wer good">WER 0.25</span><span class="meta-chip sim mid">SpkSim 0.62</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of well. These days a chicken leg is a rare dish. Rice is often chur's.&rdquo;</div>
     </div>
 </div>
 <div class="row">
-  <div class="row-label"><div class="voice">gary</div><div class="text-kind">short</div><div class="reference">&ldquo;Hello, this is a test of voice quality after KV cache compression.&rdquo;</div></div>
+  <div class="row-label"><div class="voice">gary</div><div class="text-kind">short</div><div class="reference">&ldquo;The birch canoe slid on the smooth planks.&rdquo;</div></div>
     <div class="cell">
       <audio controls preload="none" src="baseline/gary__short.wav"></audio>
-      <div class="meta"><span class="meta-chip dur">4.1s</span><span class="meta-chip wer good">WER 0.17</span></div>
-      <div class="transcript">&ldquo;Hello, this is a test of voice quality after Grakash compression.&rdquo;</div>
+      <div class="meta"><span class="meta-chip dur">2.4s</span><span class="meta-chip wer good">WER 0.00</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on the smooth planks.&rdquo;</div>
     </div>    <div class="cell">
       <audio controls preload="none" src="tq_4bit/gary__short.wav"></audio>
-      <div class="meta"><span class="meta-chip dur">3.8s</span><span class="meta-chip wer good">WER 0.08</span><span class="meta-chip sim good">SpkSim 0.86</span></div>
-      <div class="transcript">&ldquo;Hello, this is a test of voice quality after both cache compression.&rdquo;</div>
+      <div class="meta"><span class="meta-chip dur">2.4s</span><span class="meta-chip wer good">WER 0.12</span><span class="meta-chip sim good">SpkSim 0.88</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on smooth planks.&rdquo;</div>
     </div>    <div class="cell">
       <audio controls preload="none" src="tq_3bit/gary__short.wav"></audio>
-      <div class="meta"><span class="meta-chip dur">3.9s</span><span class="meta-chip wer good">WER 0.17</span><span class="meta-chip sim mid">SpkSim 0.68</span></div>
-      <div class="transcript">&ldquo;Hello, this is a test of voice quality after 4-cash compression.&rdquo;</div>
+      <div class="meta"><span class="meta-chip dur">2.5s</span><span class="meta-chip wer good">WER 0.00</span><span class="meta-chip sim good">SpkSim 0.81</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on the smooth planks.&rdquo;</div>
     </div>    <div class="cell">
       <audio controls preload="none" src="tq_2bit/gary__short.wav"></audio>
-      <div class="meta"><span class="meta-chip dur">4.5s</span><span class="meta-chip wer bad">WER 0.67</span><span class="meta-chip sim mid">SpkSim 0.64</span></div>
-      <div class="transcript">&ldquo;Hello! This is the test of Miesquality after... Ookash compression!&rdquo;</div>
+      <div class="meta"><span class="meta-chip dur">2.5s</span><span class="meta-chip wer good">WER 0.00</span><span class="meta-chip sim good">SpkSim 0.83</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on the smooth planks.&rdquo;</div>
     </div>
 </div>
 <div class="row">
-  <div class="row-label"><div class="voice">gary</div><div class="text-kind">medium</div><div class="reference">&ldquo;Hello, this message is from Dr. [redacted], [redacted], [redacted], and [redacted]. We are testing voice quality after KV cache compression on open source TurboQuant.&rdquo;</div></div>
+  <div class="row-label"><div class="voice">gary</div><div class="text-kind">medium</div><div class="reference">&ldquo;The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well.&rdquo;</div></div>
     <div class="cell">
       <audio controls preload="none" src="baseline/gary__medium.wav"></audio>
-      <div class="meta"><span class="meta-chip dur">13.8s</span><span class="meta-chip wer good">WER 0.30</span></div>
-      <div class="transcript">&ldquo;Hello, this message is from Dr. Nariesh, Jalela, [redacted] Dawan, Anay Saho, and [redacted]. We are testing voice quality after cache compression on open source...&rdquo;</div>
+      <div class="meta"><span class="meta-chip dur">12.4s</span><span class="meta-chip wer good">WER 0.08</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on the smooth planks. Glue the sheet to the dark blue. Background? It's easy to tell the depth of a well.&rdquo;</div>
     </div>    <div class="cell">
       <audio controls preload="none" src="tq_4bit/gary__medium.wav"></audio>
-      <div class="meta"><span class="meta-chip dur">13.8s</span><span class="meta-chip wer mid">WER 0.56</span><span class="meta-chip sim mid">SpkSim 0.57</span></div>
-      <div class="transcript">&ldquo;Hello, this message is from Dr. Nourish. Jillianna [redacted] Dawn, and there's an... ...ye casting voice. Quality is after K. Cache compression on open...&rdquo;</div>
+      <div class="meta"><span class="meta-chip dur">10.3s</span><span class="meta-chip wer good">WER 0.08</span><span class="meta-chip sim mid">SpkSim 0.52</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on the smooth planks, glued the sheet to the dark blue background. It's easy to tell the depth of a well.&rdquo;</div>
     </div>    <div class="cell">
       <audio controls preload="none" src="tq_3bit/gary__medium.wav"></audio>
-      <div class="meta"><span class="meta-chip dur">11.1s</span><span class="meta-chip wer mid">WER 0.33</span><span class="meta-chip sim mid">SpkSim 0.51</span></div>
-      <div class="transcript">&ldquo;Hello, this message is from Dr. Nair, Jalayla [redacted]. We are testing voice quality after current cache compression on open source TurboCrant.&rdquo;</div>
+      <div class="meta"><span class="meta-chip dur">10.3s</span><span class="meta-chip wer good">WER 0.00</span><span class="meta-chip sim mid">SpkSim 0.51</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well.&rdquo;</div>
     </div>    <div class="cell">
       <audio controls preload="none" src="tq_2bit/gary__medium.wav"></audio>
-      <div class="meta"><span class="meta-chip dur">11.1s</span><span class="meta-chip wer bad">WER 0.81</span><span class="meta-chip sim bad">SpkSim 0.42</span></div>
-      <div class="transcript">&ldquo;Hello, this message is from Zoser. Not so high. Whoa, whoa.&rdquo;</div>
+      <div class="meta"><span class="meta-chip dur">11.7s</span><span class="meta-chip wer mid">WER 0.32</span><span class="meta-chip sim mid">SpkSim 0.55</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on the smooth planks. Glue the sheet to the dark blue. Boke. Blue background. It's easy to tell.&rdquo;</div>
     </div>
 </div>
 <div class="row">
-  <div class="row-label"><div class="voice">gary</div><div class="text-kind">long</div><div class="reference">&ldquo;Large language models store a KV cache during text generation — cached Key and Value vectors from all previous tokens that the model reads back at each step to compute attention. At long context lengths, this cache can exceed the model weights in memory. TurboQuant compresses it.&rdquo;</div></div>
+  <div class="row-label"><div class="voice">gary</div><div class="text-kind">long</div><div class="reference">&ldquo;The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch.&rdquo;</div></div>
     <div class="cell">
       <audio controls preload="none" src="baseline/gary__long.wav"></audio>
-      <div class="meta"><span class="meta-chip dur">19.9s</span><span class="meta-chip wer good">WER 0.13</span></div>
-      <div class="transcript">&ldquo;Large language models store a for-cache during text generation, cache key and value vectors from all previous tokens that the model reads back at each step to compute attention. At long context lengths, this cache can exceed the model weights in memory. Turboquent compresses it.&rdquo;</div>
+      <div class="meta"><span class="meta-chip dur">17.8s</span><span class="meta-chip wer good">WER 0.06</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare dish. Rice is often served in. Round bowls, the juice of lemons, makes fine punch.&rdquo;</div>
     </div>    <div class="cell">
       <audio controls preload="none" src="tq_4bit/gary__long.wav"></audio>
-      <div class="meta"><span class="meta-chip dur">17.1s</span><span class="meta-chip wer good">WER 0.13</span><span class="meta-chip sim good">SpkSim 0.79</span></div>
-      <div class="transcript">&ldquo;Large language models store a cache during text generation, cached key and value vectors from all previous tokens that the model reads back at each step to compute attention. At long context lengths, this cache can exceed the model weights in memory.&rdquo;</div>
+      <div class="meta"><span class="meta-chip dur">17.0s</span><span class="meta-chip wer good">WER 0.02</span><span class="meta-chip sim mid">SpkSim 0.61</span></div>
+      <div class="transcript">&ldquo;The birch canoes slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch.&rdquo;</div>
     </div>    <div class="cell">
       <audio controls preload="none" src="tq_3bit/gary__long.wav"></audio>
-      <div class="meta"><span class="meta-chip dur">12.4s</span><span class="meta-chip wer mid">WER 0.45</span><span class="meta-chip sim good">SpkSim 0.76</span></div>
-      <div class="transcript">&ldquo;Large language models store of A, cache during text generation, cache key and value vectors from all previous tokens that the model reads back at each step to compute attention.&rdquo;</div>
+      <div class="meta"><span class="meta-chip dur">19.7s</span><span class="meta-chip wer mid">WER 0.44</span><span class="meta-chip sim mid">SpkSim 0.57</span></div>
+      <div class="transcript">&ldquo;The birch canoes slid on the smooth planks, glued the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare... ...dus... ...er... ...er... ...er... ...er... ...er... ...er... ...er... ...er... ...er... ...er... ...er... ...er... ...er... ...er... ...er... ...er...&rdquo;</div>
     </div>    <div class="cell">
       <audio controls preload="none" src="tq_2bit/gary__long.wav"></audio>
-      <div class="meta"><span class="meta-chip dur">14.4s</span><span class="meta-chip wer mid">WER 0.38</span><span class="meta-chip sim mid">SpkSim 0.72</span></div>
-      <div class="transcript">&ldquo;Large language models store a h during text generation, cache key and value vectors from all previous tokens that the model reads back at each step to compute attention. At long context length,&rdquo;</div>
+      <div class="meta"><span class="meta-chip dur">15.6s</span><span class="meta-chip wer bad">WER 0.69</span><span class="meta-chip sim mid">SpkSim 0.57</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on the smooth planks, ghoul the sheet to the dark blue plus bull, now one stays a-germ. The acklin deserve this rude juice of terror.&rdquo;</div>
     </div>
 </div>
 </div>
