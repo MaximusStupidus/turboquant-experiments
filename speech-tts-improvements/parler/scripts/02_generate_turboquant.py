@@ -100,7 +100,7 @@ def run_config(bits: int, label: str):
                         past_key_values=cache,
                         max_length=MAX_LENGTH[text_name],
                         do_sample=True,
-                        temperature=0.7,
+                        temperature=1.0,
                     )
                 torch.cuda.synchronize()
                 gen_time = time.time() - t_gen

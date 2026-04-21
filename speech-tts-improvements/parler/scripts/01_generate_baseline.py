@@ -77,7 +77,7 @@ for voice_name, voice_desc in VOICES.items():
                 prompt_input_ids=prompt_ids,
                 max_length=MAX_LENGTH[text_name],
                 do_sample=True,
-                temperature=0.7,
+                temperature=1.0,
             )
         if device == "cuda:0":
             torch.cuda.synchronize()
