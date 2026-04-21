@@ -149,6 +149,7 @@ class HandrolledTurboQuantCache(DynamicCache):
         dtype: torch.dtype = torch.float16,
         seed: int = 42,
         residual_length: int = 128,
+        use_projection: bool = True,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -157,6 +158,11 @@ class HandrolledTurboQuantCache(DynamicCache):
         self.num_layers = num_layers
         self.head_dim = head_dim
         self.residual_length = residual_length
+        # Ablation flag: if False, skip the random-rotation step and
+        # quantize the unit-normalized (but un-rotated) vectors directly
+        # against the Beta codebook. Tests whether the projection step is
+        # the thing that makes TurboQuant work vs. just normalize+quantize.
+        self.use_projection = use_projection
 
         # Precompute the MSE-optimal codebook for the unit-sphere distribution.
         self.codebook = compute_beta_codebook(head_dim, bits).to(dtype).to(device)
@@ -229,9 +235,17 @@ class HandrolledTurboQuantCache(DynamicCache):
         norms = x_f32.norm(dim=-1, keepdim=True)      # (batch, n_heads, seq_len, 1)
         x_unit = x_f32 / (norms + 1e-10)               # unit norm vectors
 
-        # Step 2: Rotate by orthogonal matrix
-        # Each coordinate of x_rotated now follows Beta((d-1)/2, (d-1)/2) on [-1,1]
-        x_rotated = x_unit @ R.float()
+        # Step 2: Rotate by orthogonal matrix (if enabled).
+        # With rotation: each coord of x_rotated follows Beta((d-1)/2, (d-1)/2)
+        # on [-1,1] — the distribution the codebook is tuned for.
+        # Without rotation: raw unit-normalized values go straight into the
+        # codebook quantizer. Used only for the no-projection ablation; the
+        # codebook is now mis-matched to the distribution, which is exactly
+        # the effect we want to measure.
+        if self.use_projection:
+            x_rotated = x_unit @ R.float()
+        else:
+            x_rotated = x_unit
 
         # Step 3: Quantize — find nearest Beta-optimal centroid for each value
         # codebook shape: (num_levels,) — centroids in [-1, 1]
@@ -242,8 +256,11 @@ class HandrolledTurboQuantCache(DynamicCache):
         # Step 4: Dequantize — look up centroid values
         x_rotated_approx = self.codebook[indices.long()].float()
 
-        # Step 5: Unrotate — back to original coordinate system
-        x_unit_approx = x_rotated_approx @ R.float().T
+        # Step 5: Unrotate — back to original coordinate system (if we rotated).
+        if self.use_projection:
+            x_unit_approx = x_rotated_approx @ R.float().T
+        else:
+            x_unit_approx = x_rotated_approx
 
         # Step 6: Rescale by stored norm
         x_approx = x_unit_approx * norms
@@ -334,6 +351,134 @@ class HandrolledTurboQuantCache(DynamicCache):
 
     def __iter__(self):
         """Iterate over layers, yielding (key, value) tuples."""
+        for i in range(self.num_layers):
+            res_k = torch.cat(self._residual_k[i], dim=2) if self._residual_k[i] else None
+            res_v = torch.cat(self._residual_v[i], dim=2) if self._residual_v[i] else None
+            if self._quantized_k[i] is not None and res_k is not None:
+                k = torch.cat([self._quantized_k[i], res_k], dim=2)
+                v = torch.cat([self._quantized_v[i], res_v], dim=2)
+            elif res_k is not None:
+                k, v = res_k, res_v
+            else:
+                continue
+            yield (k, v)
+
+
+class NaiveQuantCache(DynamicCache):
+    """Per-channel min-max uniform quantization — KIVI-style baseline.
+
+    No random projection. No Beta codebook. Each channel in each head in
+    each layer gets its own min/max range, mapped to 2^bits uniform levels,
+    then de-quantized back to the original range for the attention layer.
+
+    This is the 'naive' baseline that TurboQuant's random-projection trick
+    is supposed to beat. In Part 1 on Llama-8B, KIVI at 2-bit scored
+    PPL 7.86 vs TurboQuant's 6.13 — a 1.7 PPL gap that justified the
+    projection design. We include this class so Part 2 (Parler-TTS) can
+    run the same ablation and show whether the projection specifically
+    helps for audio generation too.
+
+    Residual buffer is preserved (128 tokens at fp16) so the comparison
+    is fair — both quantizers get the same "protect recent tokens"
+    engineering choice, only the quantization method differs.
+    """
+
+    def __init__(
+        self,
+        num_layers: int,
+        num_kv_heads: int,
+        head_dim: int,
+        bits: int = 2,
+        device: str = "cuda",
+        dtype: torch.dtype = torch.float16,
+        residual_length: int = 128,
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+        self.bits = bits
+        self.num_levels = 2 ** bits
+        self.num_layers = num_layers
+        self.head_dim = head_dim
+        self.residual_length = residual_length
+        self._quantized_k = [None] * num_layers
+        self._quantized_v = [None] * num_layers
+        self._residual_k = [[] for _ in range(num_layers)]
+        self._residual_v = [[] for _ in range(num_layers)]
+
+    def _quantize_tensor(self, x: torch.Tensor) -> torch.Tensor:
+        """Per-channel uniform quantization. Returns the dequantized approximation.
+
+        x shape: (batch, n_heads, seq_len, head_dim)
+
+        For each (batch, head, channel), compute min/max across the seq_len
+        dim, map values to [0, num_levels-1], round, map back.
+        """
+        x_f32 = x.float()
+        # Compute per-channel min/max (reduce over seq_len dim).
+        x_min = x_f32.amin(dim=2, keepdim=True)       # (b, h, 1, d)
+        x_max = x_f32.amax(dim=2, keepdim=True)       # (b, h, 1, d)
+        scale = (x_max - x_min) / (self.num_levels - 1)
+        scale = torch.clamp(scale, min=1e-10)          # avoid div-by-zero
+        # Quantize: (x - min) / scale rounded to int, clipped to valid range.
+        q = torch.round((x_f32 - x_min) / scale).clamp(0, self.num_levels - 1)
+        # Dequantize.
+        x_approx = q * scale + x_min
+        return x_approx.to(x.dtype)
+
+    def update(self, key_states, value_states, layer_idx, cache_kwargs=None):
+        """Same residual-buffer logic as HandrolledTurboQuantCache, but with
+        naive per-channel min-max quantization when the buffer overflows."""
+        self._residual_k[layer_idx].append(key_states)
+        self._residual_v[layer_idx].append(value_states)
+        res_k = torch.cat(self._residual_k[layer_idx], dim=2)
+        res_v = torch.cat(self._residual_v[layer_idx], dim=2)
+        res_len = res_k.shape[2]
+
+        if res_len > self.residual_length:
+            overflow = res_len - self.residual_length
+            old_k = res_k[:, :, :overflow, :]
+            old_v = res_v[:, :, :overflow, :]
+            keep_k = res_k[:, :, overflow:, :]
+            keep_v = res_v[:, :, overflow:, :]
+
+            old_k_approx = self._quantize_tensor(old_k)
+            old_v_approx = self._quantize_tensor(old_v)
+
+            if self._quantized_k[layer_idx] is not None:
+                self._quantized_k[layer_idx] = torch.cat(
+                    [self._quantized_k[layer_idx], old_k_approx], dim=2)
+                self._quantized_v[layer_idx] = torch.cat(
+                    [self._quantized_v[layer_idx], old_v_approx], dim=2)
+            else:
+                self._quantized_k[layer_idx] = old_k_approx
+                self._quantized_v[layer_idx] = old_v_approx
+
+            self._residual_k[layer_idx] = [keep_k]
+            self._residual_v[layer_idx] = [keep_v]
+            res_k = keep_k
+            res_v = keep_v
+
+        if self._quantized_k[layer_idx] is not None:
+            full_k = torch.cat([self._quantized_k[layer_idx], res_k], dim=2)
+            full_v = torch.cat([self._quantized_v[layer_idx], res_v], dim=2)
+        else:
+            full_k = res_k
+            full_v = res_v
+
+        return full_k, full_v
+
+    def get_seq_length(self, layer_idx: int = 0) -> int:
+        total = 0
+        if self._quantized_k[layer_idx] is not None:
+            total += self._quantized_k[layer_idx].shape[2]
+        for t in self._residual_k[layer_idx]:
+            total += t.shape[2]
+        return total
+
+    def __len__(self):
+        return self.num_layers
+
+    def __iter__(self):
         for i in range(self.num_layers):
             res_k = torch.cat(self._residual_k[i], dim=2) if self._residual_k[i] else None
             res_v = torch.cat(self._residual_v[i], dim=2) if self._residual_v[i] else None
