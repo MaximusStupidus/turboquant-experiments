@@ -16,12 +16,13 @@ TEXTS = {
     "long":   "Large language models store a KV cache during text generation — cached Key and Value vectors from all previous tokens that the model reads back at each step to compute attention. At long context lengths, this cache can exceed the model weights in memory. TurboQuant compresses it.",
 }
 
-# Parler-TTS emits ~86 audio frames/sec. Normal speech is ~3 words/sec.
-# Word counts: short=12, medium=34, long=56.
-# Budgets below give each text ~1.3x headroom over the natural speech
-# duration so the model reaches EOS instead of padding with buzz.
-MAX_NEW_TOKENS = {
-    "short":  600,   # ~7 s of audio for ~12-word prompt
-    "medium": 1400,  # ~16 s of audio for ~34-word prompt
-    "long":   2400,  # ~28 s of audio for ~56-word prompt (close to model cap)
+# Parler-TTS emits ~86 audio frames/sec; generation_config.max_length=2580
+# corresponds to ~30 s of audio. Parler's custom generate() IGNORES
+# `max_new_tokens` and uses `max_length` for the delay pattern mask, so
+# we pass max_length directly per prompt sized to ~1.3x natural speech
+# duration (3 words/sec). Word counts: short=12, medium=34, long=56.
+MAX_LENGTH = {
+    "short":  450,   # ~5 s of audio for ~12-word prompt
+    "medium": 1200,  # ~14 s of audio for ~34-word prompt
+    "long":   2400,  # ~28 s of audio for ~56-word prompt (close to model cap 2580)
 }
