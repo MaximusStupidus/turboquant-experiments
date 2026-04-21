@@ -43,6 +43,11 @@ Usage:
 import math
 import torch
 import numpy as np
+
+# numpy 2.0 renamed trapz → trapezoid. Shim for numpy <2 (needed when other
+# pins force an older numpy, e.g. parler-tts requires numpy<2).
+if not hasattr(np, "trapezoid"):
+    np.trapezoid = np.trapz
 from transformers import DynamicCache
 
 
