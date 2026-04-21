@@ -1,0 +1,253 @@
+{
+  "baseline": {
+    "jon__short": {
+      "wer": {
+        "transcript": "Hello!",
+        "wer": 1.0
+      }
+    },
+    "jon__medium": {
+      "wer": {
+        "transcript": "Hello, this...",
+        "wer": 0.963
+      }
+    },
+    "jon__long": {
+      "wer": {
+        "transcript": "Large length...",
+        "wer": 0.9787
+      }
+    },
+    "laura__short": {
+      "wer": {
+        "transcript": "Hello!",
+        "wer": 1.0
+      }
+    },
+    "laura__medium": {
+      "wer": {
+        "transcript": "Hello this message is from Dr. Nair.",
+        "wer": 0.8148
+      }
+    },
+    "laura__long": {
+      "wer": {
+        "transcript": "Large Language Model Store",
+        "wer": 0.9362
+      }
+    },
+    "gary__short": {
+      "wer": {
+        "transcript": "Hello!",
+        "wer": 1.0
+      }
+    },
+    "gary__medium": {
+      "wer": {
+        "transcript": "",
+        "wer": 1.0
+      }
+    },
+    "gary__long": {
+      "wer": {
+        "transcript": "Large Language Models Store",
+        "wer": 0.9149
+      }
+    }
+  },
+  "tq_4bit": {
+    "jon__short": {
+      "wer": {
+        "transcript": "Hello!",
+        "wer": 1.0
+      },
+      "speaker_similarity_vs_baseline": 0.69
+    },
+    "jon__medium": {
+      "wer": {
+        "transcript": "Hello this",
+        "wer": 0.963
+      },
+      "speaker_similarity_vs_baseline": 0.9979
+    },
+    "jon__long": {
+      "wer": {
+        "transcript": "Large Ling",
+        "wer": 0.9787
+      },
+      "speaker_similarity_vs_baseline": 0.8512
+    },
+    "laura__short": {
+      "wer": {
+        "transcript": "Hello!",
+        "wer": 1.0
+      },
+      "speaker_similarity_vs_baseline": 0.9645
+    },
+    "laura__medium": {
+      "wer": {
+        "transcript": "Hello, this message is from Dr. Narish.",
+        "wer": 0.7778
+      },
+      "speaker_similarity_vs_baseline": 0.6344
+    },
+    "laura__long": {
+      "wer": {
+        "transcript": "Large language model store at the ca-",
+        "wer": 0.8936
+      },
+      "speaker_similarity_vs_baseline": 0.6046
+    },
+    "gary__short": {
+      "wer": {
+        "transcript": "Hello!",
+        "wer": 1.0
+      },
+      "speaker_similarity_vs_baseline": 0.9952
+    },
+    "gary__medium": {
+      "wer": {
+        "transcript": "",
+        "wer": 1.0
+      },
+      "speaker_similarity_vs_baseline": 0.8987
+    },
+    "gary__long": {
+      "wer": {
+        "transcript": "Large language",
+        "wer": 0.9574
+      },
+      "speaker_similarity_vs_baseline": 0.9339
+    }
+  },
+  "tq_3bit": {
+    "jon__short": {
+      "wer": {
+        "transcript": "Hello!",
+        "wer": 1.0
+      },
+      "speaker_similarity_vs_baseline": 0.6824
+    },
+    "jon__medium": {
+      "wer": {
+        "transcript": "Hello, this...",
+        "wer": 0.963
+      },
+      "speaker_similarity_vs_baseline": 0.9894
+    },
+    "jon__long": {
+      "wer": {
+        "transcript": "Large length...",
+        "wer": 0.9787
+      },
+      "speaker_similarity_vs_baseline": 0.7597
+    },
+    "laura__short": {
+      "wer": {
+        "transcript": "Hello!",
+        "wer": 1.0
+      },
+      "speaker_similarity_vs_baseline": 0.9652
+    },
+    "laura__medium": {
+      "wer": {
+        "transcript": "Hello, this message is for you.",
+        "wer": 0.8519
+      },
+      "speaker_similarity_vs_baseline": 0.4751
+    },
+    "laura__long": {
+      "wer": {
+        "transcript": "Large language models store of a cache during text generation.",
+        "wer": 0.8511
+      },
+      "speaker_similarity_vs_baseline": 0.2453
+    },
+    "gary__short": {
+      "wer": {
+        "transcript": "Hello!",
+        "wer": 1.0
+      },
+      "speaker_similarity_vs_baseline": 0.9999
+    },
+    "gary__medium": {
+      "wer": {
+        "transcript": "",
+        "wer": 1.0
+      },
+      "speaker_similarity_vs_baseline": 0.9729
+    },
+    "gary__long": {
+      "wer": {
+        "transcript": "Large Language Models Store",
+        "wer": 0.9149
+      },
+      "speaker_similarity_vs_baseline": 0.1375
+    }
+  },
+  "tq_2bit": {
+    "jon__short": {
+      "wer": {
+        "transcript": "Hello!",
+        "wer": 1.0
+      },
+      "speaker_similarity_vs_baseline": 0.7959
+    },
+    "jon__medium": {
+      "wer": {
+        "transcript": "Hello this",
+        "wer": 0.963
+      },
+      "speaker_similarity_vs_baseline": 0.9804
+    },
+    "jon__long": {
+      "wer": {
+        "transcript": "Large place... Large place...",
+        "wer": 0.9787
+      },
+      "speaker_similarity_vs_baseline": 0.5444
+    },
+    "laura__short": {
+      "wer": {
+        "transcript": "Hello!",
+        "wer": 1.0
+      },
+      "speaker_similarity_vs_baseline": 0.9618
+    },
+    "laura__medium": {
+      "wer": {
+        "transcript": "Hello, this message is from Dr. Nairsh.",
+        "wer": 0.7778
+      },
+      "speaker_similarity_vs_baseline": 0.5696
+    },
+    "laura__long": {
+      "wer": {
+        "transcript": "Large language models",
+        "wer": 0.9362
+      },
+      "speaker_similarity_vs_baseline": 0.2295
+    },
+    "gary__short": {
+      "wer": {
+        "transcript": "Hello!",
+        "wer": 1.0
+      },
+      "speaker_similarity_vs_baseline": 1.0
+    },
+    "gary__medium": {
+      "wer": {
+        "transcript": "",
+        "wer": 1.0
+      },
+      "speaker_similarity_vs_baseline": 0.8969
+    },
+    "gary__long": {
+      "wer": {
+        "transcript": "Large Language Model Store...",
+        "wer": 0.9362
+      },
+      "speaker_similarity_vs_baseline": 0.3791
+    }
+  }
+}
