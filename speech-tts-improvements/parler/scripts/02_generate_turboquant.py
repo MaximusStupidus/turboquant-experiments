@@ -99,7 +99,7 @@ def run_config(bits: int, label: str):
                 torch.cuda.synchronize()
                 gen_time = time.time() - t_gen
 
-                audio_arr = audio.cpu().numpy().squeeze().astype(np.float32)
+                audio_arr = audio.float().cpu().numpy().squeeze().astype(np.float32)
                 audio_duration = len(audio_arr) / model.config.sampling_rate
                 out_path = os.path.join(out_dir, f"{key}.wav")
                 sf.write(out_path, audio_arr, model.config.sampling_rate)

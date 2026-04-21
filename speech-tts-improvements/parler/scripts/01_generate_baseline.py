@@ -81,7 +81,7 @@ for voice_name, voice_desc in VOICES.items():
             torch.cuda.synchronize()
         gen_time = time.time() - t_gen
 
-        audio_arr = audio.cpu().numpy().squeeze().astype(np.float32)
+        audio_arr = audio.float().cpu().numpy().squeeze().astype(np.float32)
         audio_duration = len(audio_arr) / model.config.sampling_rate
 
         out_path = os.path.join(OUT_DIR, f"{key}.wav")
