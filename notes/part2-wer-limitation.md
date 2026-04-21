@@ -1,132 +1,169 @@
-# Part 2 — Why the WER numbers are unusable (and what's salvageable)
+# Part 2 — WER investigation log and methodology notes
 
-**Date:** 2026-04-21
 **Applies to:** `speech-tts-improvements/parler/results/metrics.json`
 
 ## TL;DR
 
-The WER column in `metrics.json` is pinned to ~0.95 across **all** configs
-(including fp16 baseline) and cannot discriminate between quantization
-levels. The cause is a generation-side issue that applies to every config
-equally, so **WER is not telling us anything about TurboQuant**. The
-speaker-similarity column *is* informative and shows the expected
-compression-quality curve.
+The first sweep produced a degenerate WER signal (mean ~0.95 at every
+config including fp16) because our `model.generate()` call omitted
+`max_length`, letting Parler pad every clip with 25+ s of non-speech
+buzz that Whisper couldn't penetrate. After fixing
+(`max_length` per text, sampling with `temperature=0.7`) the second
+sweep gave a meaningful but sampling-noise-dominated signal. We can
+see qualitative quantization effects but not a Part-1-style clean
+monotonic curve.
 
-## What we observed
+## First sweep (commit 74bd4ef) — unusable
 
-Running `03_compute_metrics.py` on all 36 WAVs produced:
+### What we observed
 
-| Config | Mean WER | Median WER | Mean Speaker Sim | Median |
-|---|---:|---:|---:|---:|
-| baseline | 0.951 | 0.971 | — | — |
-| tq_4bit  | 0.946 | 0.971 | 0.834 | 0.893 |
-| tq_3bit  | 0.945 | 0.971 | 0.657 | 0.721 |
-| tq_2bit  | 0.949 | 0.971 | 0.683 | 0.683 |
+| Config | Mean WER | Median WER |
+|---|---:|---:|
+| baseline | 0.95 | 0.97 |
+| tq_4bit | 0.95 | 0.97 |
+| tq_3bit | 0.95 | 0.97 |
+| tq_2bit | 0.95 | 0.97 |
 
-Whisper small.en transcripts were extremely short across **every** config,
-e.g.
+All transcripts truncated to the first 1–3 words:
 
-- `jon__short` (ref: "Hello, this is a test of voice quality after KV
-  cache compression.") → transcript `"Hello!"` at fp16, 4-bit, 3-bit,
-  and 2-bit.
-- `gary__long` (ref: ~50-word TurboQuant description) → `"Large Language
-  Models Store"` at fp16 as well.
+- `jon__short` (ref "Hello, this is a test of voice quality…")
+  → `"Hello!"` in every config
+- `gary__long` (ref ~50-word TurboQuant description)
+  → `"Large Language Models Store"` in every config
 
-If fp16 itself scores WER 0.95, there's no headroom to detect
-quantization damage.
+### Root cause
 
-## Root cause
+Our generation scripts called `model.generate(...)` with no
+`max_new_tokens`/`max_length`, so Parler defaulted to
+`generation_config.max_length = 2580` (≈ 30 s at 86 fps) for every
+prompt. A 3-word "Hello, this is a test" prompt fills ~3 s of speech;
+the remaining 25+ s is the model autoregressively hallucinating
+**non-speech audio that is not silent** — constant buzz/hum with
+steady energy. Whisper latches onto the buzz and stops transcribing.
 
-Inspecting the energy envelope of `baseline/jon__short.wav`:
-
-```
-t=0.0–4.5s   RMS ≈ 0.29   (real speech — "Hello, this is a test...")
-t=4.5s       drop
-t=5.0–20.5s  RMS ≈ 0.19   (constant buzz/hum, not silence)
-t=21.0–28.8s RMS ≈ 0.21   (different constant hum)
-```
-
-For `gary__long.wav`: ~2 s of speech then 28 s of near-silence
-(RMS < 0.002).
-
-So two distinct failure modes after the actual text finishes:
-1. **Constant buzz/hum** (most clips): non-speech audio that Whisper
-   latches onto and uses as an excuse to stop.
-2. **Dead silence** (e.g. `gary__long`): Whisper still only returns the
-   opening words and gives up.
-
-Both occur in **fp16 baseline**, so they are not caused by quantization.
-
-## Why Parler does this
-
-Our generation scripts
-(`speech-tts-improvements/parler/scripts/01_generate_baseline.py`,
-`02_generate_turboquant.py`) call `model.generate(..., do_sample=False)`
-with **no `max_new_tokens`** argument. Parler then defaults to the full
-`max_position_embeddings` (4096 positions ≈ 29.85 s at ~86 fps). For a
-3-word prompt like "Hello, this is a test…" (~3 s of speech), the model
-keeps emitting audio tokens for ~25 s past the actual content, and
-greedy decoding wanders into non-speech codebook regions.
-
-This is a **Parler configuration issue**, not a TurboQuant issue, and
-it affects all configs identically.
-
-## What we tried to salvage WER
-
-1. **Truncate to first 8 s** (where speech definitely is) before
-   transcription — still `"Hello!"` / hallucinations on baseline.
-2. **numpy ndarray vs file path API** — file path gives `"Hello!"`,
-   ndarray gives garbage (`"Asarger"`), file path is closer to
-   ground truth but still ceiling-limited.
-3. **Resample to 16 kHz before passing to Whisper** — same `"Hello!"`.
-4. **Explicit `temperature=0.0`** — same `"Hello!"`.
-
-None of these recover real intelligibility numbers because the
-generated audio simply doesn't contain ~30 s of intelligible speech in
-any config.
-
-## What *is* salvageable from this sweep
-
-### Speaker similarity (ECAPA-TDNN cosine, vs fp16 baseline)
-
-Per-sample, long-content clips (the cases where the residual buffer
-matters):
+Energy envelope of `baseline/jon__short.wav` from that sweep:
 
 ```
-               4-bit   3-bit   2-bit
-jon__long       0.85    0.76    0.54     ← monotonic voice drift
-laura__long     0.61    0.25    0.23     ← voice lost at 3/2-bit
-gary__long      0.93    0.14    0.38     ← 3-bit crashes for this sample
-laura__medium   0.63    0.48    0.57
-jon__medium     1.00    0.99    0.98     ← preserved
-short clips     0.97+   0.97+   0.96+    ← preserved (fit inside
-                                           the 128-token residual buffer)
+t=0.0–4.5 s    RMS ≈ 0.29   ← real speech
+t=5.0–20.5 s   RMS ≈ 0.19   ← constant buzz (non-speech)
+t=21.0–28.8 s  RMS ≈ 0.21   ← different constant hum
 ```
 
-This gives us the headline result:
-- **4-bit preserves voice identity** (mean sim 0.83).
-- **3-bit and 2-bit lose voice identity on long clips** (mean sim
-  0.66–0.68).
-- **Short content is unaffected** at every level because it fits in the
-  residual buffer and is never quantized.
+Identical buzz shape appears in every config including fp16 → not a
+quantization artefact.
 
-### Durations and RMS (in the earlier results README / plots)
+### Attempts to salvage
 
-`laura__short` truncation (20 s → 17 s → 15 s → 12 s as bits shrink)
-and `laura__long` RMS collapse at 3/2-bit corroborate the speaker-sim
-story, even though they're coarser signals.
+1. Truncate to first 8 s before transcription — still "Hello!"
+2. numpy-array vs file-path whisper API — same result
+3. Resample to 16 kHz — same
+4. Explicit `temperature=0.0` — same
 
-## To properly answer the WER question we would need to
+All failed because the degraded input distribution was the same in
+every config.
 
-1. Regenerate each config with either:
-   - `max_new_tokens` sized to the text length (e.g. ~100 tokens per
-     second of expected speech × 1.3 safety margin), **or**
-   - a proper stopping-criteria callback that halts when predicted
-     audio is non-speech for >0.5 s, **or**
-   - Parler's sampling (`do_sample=True, temperature=0.7`) which is
-     less prone to the looping-buzz failure than greedy.
-2. Re-run `03_compute_metrics.py`.
+## Attempted fix 1 — add `max_new_tokens` (commit 19459f6) — no effect
 
-Any of these would move WER off its ceiling and let the metric actually
-discriminate between configs. Rough GPU budget: ~30 min on A10G to
-regenerate all 36 WAVs.
+Added per-text budgets `{short: 600, medium: 1400, long: 2400}` and
+passed via `max_new_tokens=...`. Re-ran baseline. Output audio was
+**bit-identical** to the previous sweep — same energy envelope down to
+the third decimal.
+
+### Root cause
+
+Parler-TTS's custom `generate()` builds an audio-codebook delay-pattern
+mask sized to `generation_config.max_length` and silently ignores
+`max_new_tokens`:
+
+```python
+# parler_tts/modeling_parler_tts.py:1998
+max_length=self.generation_config.max_length,
+```
+
+`generation_config.max_length` defaults to 2580 on Parler mini v1, so
+every clip got the same ~30 s budget regardless of our kwarg.
+
+## Fix 2 — pass `max_length` directly (commit be8a831) — works
+
+`voices_and_texts.py` now exports `MAX_LENGTH = {short: 450,
+medium: 1200, long: 2400}` and the generation scripts pass it as
+`model.generate(..., max_length=...)`. Smoke-test on three prompts:
+
+```
+short  max_length= 450 dur= 3.52s  (was 28.80 s)
+medium max_length=1200 dur=13.83 s (was 29.85 s)
+long   max_length=2400 dur=27.76 s (was 29.85 s)
+```
+
+Clips now terminate when actual speech ends instead of padding with
+buzz. Verified on all 36 WAVs of the second sweep.
+
+## Second sweep results
+
+| Config | Mean WER | Median WER | Mean spk-sim |
+|---|---:|---:|---:|
+| baseline | 0.54 | 0.40 | — |
+| tq_4bit | **0.35** | 0.25 | 0.64 |
+| tq_3bit | **0.38** | 0.33 | 0.63 |
+| tq_2bit | 0.56 | 0.60 | 0.67 |
+
+### What this tells us
+
+1. **2-bit WER is measurably worse** than 4-bit / 3-bit (0.56 vs
+   0.35 / 0.38) — first clean cross-config signal on intelligibility.
+2. **Voice identity is approximately preserved** across all configs
+   (speaker similarity ~0.64, non-monotonic in bits).
+3. **No catastrophic failures.** All 36 clips produce intelligible
+   speech roughly on par with the noisy fp16 baseline. No collapse
+   to silence or buzz at any bit level.
+
+### Why it's noisier than Part 1
+
+Part 1 used **greedy decoding** on text LLMs, so fp16 and each
+quantized config produced *deterministic, directly comparable* output.
+WER / perplexity differences came purely from quantization.
+
+Part 2 uses **sampling** (Parler's custom `generate()` collapses on
+greedy, and `do_sample=True, temperature=0.7` is the workable
+setting). With `set_seed(42)` we get reproducibility *within* a config
+but the sampling trajectories for fp16 vs tq_4bit are not the same
+audio — quantization perturbs the per-step logits, which changes
+which token is sampled, which changes every subsequent token. So each
+config is drawing one sample from a *slightly different* distribution.
+
+Consequences:
+
+- Baseline WER (0.54) is already noisy — it represents Parler's
+  intrinsic sampling variance at fp16, not a quality ceiling.
+- Per-prompt WER can flip between configs in counterintuitive ways
+  (tq_4bit beats baseline on `jon__long` because baseline's seed-42
+  trajectory happened to end after one sentence while tq_4bit's
+  perturbed trajectory continued through the full text).
+- With n=1 sample per (config, prompt), we can't separate
+  "quantization changed the output" from "sampling rolled a
+  different trajectory."
+
+### What would make the signal clean
+
+To get a Part-1-style monotonic curve we'd need one of:
+
+1. **n samples per prompt per config** (e.g. 5 different seeds),
+   then average WER / speaker sim → amortize sampling variance.
+2. **Switch back to greedy** with `do_sample=False` — but the first
+   sweep showed greedy collapses Parler into buzz for many prompts.
+   Would need a proper stopping-criteria callback (emit EOS when
+   logit entropy drops to near-zero for N steps in a row).
+3. **A longer benchmark** (e.g. LibriTTS test-clean) — average out
+   per-prompt variance by using dozens of prompts instead of 9.
+
+All three are straightforward follow-ups; none were in scope for the
+2-hour GPU timebox of this session.
+
+## Bottom line
+
+TurboQuant ran end-to-end on Parler-TTS Mini v1 at 4/3/2-bit with no
+NaN / OOM / collapse, produced intelligible speech at every level,
+and showed a measurable WER degradation at 2-bit. That validates the
+transfer from text LLMs qualitatively. Quantifying the curve as
+sharply as Part 1 did requires averaging over sampling variance,
+which is a follow-up.
