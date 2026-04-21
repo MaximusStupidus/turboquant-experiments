@@ -207,10 +207,14 @@ footer a:hover { text-decoration: underline; }
 
 <header>
   <h1>TurboQuant on Parler-TTS Mini v1 &mdash; audio comparison</h1>
+  <p style="margin-bottom:18px;">
+    <a href="algorithm_explained.html" style="color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent);">&larr; How the algorithm works</a>
+  </p>
   <p>
-    9 prompts (3 voices &times; 3 text lengths) generated at 4 cache
-    settings: fp16 baseline, TurboQuant 4-bit, 3-bit, and 2-bit.
-    Generation used <code>do_sample=True, temperature=0.7, seed=42</code>,
+    9 prompts (3 voices &times; 3 text lengths) generated at 6 cache
+    settings: fp16 baseline, TurboQuant 4-bit / 3-bit / 2-bit, and two
+    2-bit ablations (no-projection + naive min-max). Generation used
+    <code>do_sample=True, temperature=1.0, seed=42</code>,
     <code>max_length</code> per text length. Metrics: WER via Whisper
     small.en, speaker similarity vs fp16 baseline via ECAPA-TDNN.
   </p>
