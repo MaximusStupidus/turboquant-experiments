@@ -2,16 +2,17 @@
 
 **Applies to:** `speech-tts-improvements/parler/results/metrics.json`
 
-## TL;DR
+## TL;DR (post-all-fixes, current state)
 
-The first sweep produced a degenerate WER signal (mean ~0.95 at every
-config including fp16) because our `model.generate()` call omitted
-`max_length`, letting Parler pad every clip with 25+ s of non-speech
-buzz that Whisper couldn't penetrate. After fixing
-(`max_length` per text, sampling with `temperature=0.7`) the second
-sweep gave a meaningful but sampling-noise-dominated signal. We can
-see qualitative quantization effects but not a Part-1-style clean
-monotonic curve.
+Three successive issues had to be fixed before the WER signal
+reflected quantization instead of generation artefacts. The current
+sweep (max_length per text, temperature=1.0, Harvard Sentences)
+gives a clean monotonic curve matching Part 1's shape: baseline
+WER 0.04 → 4-bit 0.06 → 3-bit 0.12 → 2-bit 0.21. See
+[`04-parler-results.md`](04-parler-results.md) for final numbers.
+
+The three rounds below are preserved as a record of what went
+wrong and why.
 
 ## First sweep (commit 74bd4ef) — unusable
 

@@ -6,7 +6,8 @@
 `do_sample=True`, fixed `set_seed(42)` per sample; `max_length` per
 text (450 / 1200 / 2400 steps for short / medium / long).
 **Eval:** 3 voices × 3 texts = 9 prompts per config, compared across
-fp16 baseline and TurboQuant at 4-bit / 3-bit / 2-bit — 36 WAVs total.
+6 configs — fp16 baseline, TurboQuant at 4-bit / 3-bit / 2-bit, plus
+two 2-bit ablations (no-projection, naive min-max). **54 WAVs total.**
 **WER:** Whisper small.en. **Speaker similarity:** ECAPA-TDNN cosine
 between baseline and quantized generations of the same prompt.
 
@@ -163,22 +164,22 @@ not real-time on A10G.
 
 ## What the experiment doesn't (yet) show
 
-### 1. Is the random projection specifically what saves quality?
+### 1. Statistical tightness at small n.
 
-Part 1 had KIVI (naive scalar quantization, no projection) as a
-second baseline and showed TurboQuant beat KIVI by 1.7 PPL at 2-bit.
-Part 2 doesn't have a naive-quant baseline, so we can't isolate the
-projection trick's specific contribution. A follow-up sweep with a
-pure-scalar-quant cache would close this gap.
+With 9 prompts per config, per-prompt sampling variance remains a
+confounder. A multi-seed sweep (3 seeds × 9 prompts = 27 runs per
+config) produced the `mean ± std` columns above; the std is
+non-negligible relative to config-to-config deltas at bit rates near
+the noise floor (4-bit vs baseline especially). A proper
+LibriTTS-scale benchmark (~100+ prompts) would tighten the error
+bars further.
 
-### 2. Per-prompt variance.
+### 2. Whisper's own noise floor.
 
-We have n=1 sample per (config, prompt). Some prompts show bigger
-degradation than others (`gary__medium` 2-bit WER 0.82,
-`gary__long` 2-bit WER 0.38) due to per-prompt sampling variance on
-top of the quantization effect. Multi-seed averaging (3-5 draws per
-config per prompt) would sharpen the means further, at ~3-5× the GPU
-cost.
+Baseline WER 0.04 is close to Whisper small.en's intrinsic error rate
+on clean read speech. Sub-0.10 WER deltas between configs should be
+read with that in mind. Whisper-large-v3 would discriminate better
+at the low end but takes ~4× longer per clip.
 
 ### 3. Longer contexts.
 

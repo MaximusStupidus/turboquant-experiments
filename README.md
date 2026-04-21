@@ -1,6 +1,6 @@
 # TurboQuant Experiments
 
-Open-source comparative benchmarks of [TurboQuant](https://arxiv.org/abs/2504.19874) (Google Research, ICLR 2026) applied to autoregressive transformer models. Includes a **from-scratch implementation** of the algorithm with full commentary, validated against the community package.
+Open-source comparative benchmarks of [TurboQuant](https://arxiv.org/abs/2504.19874) (Google Research, ICLR 2026) applied to autoregressive transformer models. Includes a **from-scratch implementation** of the algorithm with full commentary, whose end-to-end perplexity on Llama-3.1-8B matches the community package ([handrolled 2-bit PPL 6.07](language-model-improvements/results/handrolled_2bit.json) vs [community 2-bit PPL 6.13](language-model-improvements/results/turboquant_2bit.json)).
 
 ## What is TurboQuant?
 
@@ -33,8 +33,8 @@ Evaluated on **Llama-3.1-8B-Instruct**, WikiText-2 test set, autoregressive perp
 
 - **At 4-bit:** All methods are nearly equivalent. Compression doesn't stress any method enough for differences to matter.
 - **At 2-bit:** TurboQuant (6.07–6.13) dramatically outperforms naive KIVI (7.86). The random projection trick saves **1.7+ perplexity points** at the same compression ratio.
-- **TurboQuant 3-bit is the sweet spot:** PPL 5.66 (+0.15 from baseline) at ~5x KV compression. Almost no quality loss.
-- **Our from-scratch implementation matches the community package** — validating the algorithm is correct and reproducible.
+- **TurboQuant 3-bit on Llama-8B is almost free:** PPL 5.66 (+0.15 from baseline) at ~5x KV compression. On Parler-TTS (Part 2) 3-bit is a bigger jump — WER doubles from 0.06 → 0.12 — so the "sweet spot" framing is model-dependent, not universal.
+- **Our from-scratch implementation's end-to-end perplexity matches the community package** at every tested bit level. This is consistent with — but does not prove — algorithmic equivalence; both could be similarly wrong. A stronger validation (per-step tensor equivalence) is in [`tests/test_numerical_equivalence.py`](language-model-improvements/tests/test_numerical_equivalence.py).
 - **Throughput:** Community TurboQuant is ~10% slower than fp16 (projection overhead). KIVI is ~23% slower (quanto dequantization overhead). Our handrolled implementation is ~18x slower (pure PyTorch, no optimized kernels — correctness, not speed, was the goal).
 
 ### What we learned along the way
@@ -120,6 +120,12 @@ The `notes/` directory contains the learning journey — written explanations of
 
 ## Part 2: Parler-TTS
 
+> **Up-front caveats for Part 2** (addressed in detail below):
+> - **This experiment measures quality preservation, not memory savings.** Parler maxes out at ~30 s audio (4096 positions); the self-attn KV cache is a few MB even at fp16, too small for quantization to save GPU memory. All configs report peak 3.0 GB. The memory argument for KV compression applies at long-context models, not Parler.
+> - **Sample size is small: 9 prompts × 3 voices = 27 data points per config.** Not LibriTTS-scale. Numbers here are illustrative of direction; error bars across seeds are in [`notes/04-parler-results.md`](notes/04-parler-results.md).
+> - **Whisper small.en is the WER evaluator** (CPU-friendly, laptop runs). Baseline WER 0.04 is near the ASR's own noise floor on clean read speech — small cross-config WER deltas should be read with that in mind.
+> - **Part 2 requires a separate venv** from the Part 1 environment. Parler-TTS pins `transformers==4.46.1` and `numpy<2`, which conflict with Part 1's `transformers>=4.51` and `numpy>=2`. See [`speech-tts-improvements/parler/README.md`](speech-tts-improvements/parler/README.md) for the setup.
+
 ### Results
 
 Evaluated on **Parler-TTS Mini v1** (880M), 9 Harvard-sentence prompts × 3 voices, Whisper small.en WER.
@@ -193,25 +199,30 @@ The decoder's self-attention KV cache grows with generated audio (~86 frames/sec
 | **RTF** | Generation time / audio duration | Is it real-time capable? |
 | **Time-to-first-audio** | Latency to first audio chunk | Does it feel responsive? |
 
-### KV cache injection (the clean part)
+### KV cache injection — what actually worked
 
-`ParlerTTSDecoder.forward()` auto-wraps a bare `DynamicCache` into the self-attention slot of an `EncoderDecoderCache`. So our Part 1 `HandrolledTurboQuantCache` plugs in unchanged:
+Our initial assumption was that `ParlerTTSDecoder.forward()` would auto-wrap a bare `DynamicCache` into the self-attention slot of an `EncoderDecoderCache`. It doesn't: Parler's `prepare_inputs_for_generation` calls `past_key_values[0][0].shape[2]` *before* any auto-wrap, which raises `IndexError` on an empty `DynamicCache`. **We must pre-wrap the cache explicitly**:
 
 ```python
+from transformers import EncoderDecoderCache, DynamicCache
 from language_model_improvements.handrolled_turboquant import HandrolledTurboQuantCache
 
-cache = HandrolledTurboQuantCache(
+inner = HandrolledTurboQuantCache(
     num_layers=24, num_kv_heads=16, head_dim=64,
     bits=2, device="cuda", dtype=torch.bfloat16, residual_length=128,
 )
+# Explicit wrap: self-attn (our quantized cache) + cross-attn (plain fp16).
+cache = EncoderDecoderCache(inner, DynamicCache())
+
 audio = model.generate(
     input_ids=description_ids, prompt_input_ids=text_ids,
-    past_key_values=cache,  # auto-wrapped into EncoderDecoderCache
-    do_sample=False,
+    past_key_values=cache,
+    max_length=max_length_for_prompt,  # Parler ignores max_new_tokens
+    do_sample=True, temperature=1.0,   # Parler's native default; lower temps degrade
 )
 ```
 
-Only `num_layers`, `num_kv_heads`, and `head_dim` change vs Part 1. The Beta codebook is recomputed per `head_dim` automatically.
+Only `num_layers`, `num_kv_heads`, and `head_dim` change vs Part 1. The Beta codebook is recomputed per `head_dim` automatically. Full generation-parameter landmines (max_length vs max_new_tokens, temperature=1.0 default, prompt curation) are documented in [`notes/part2-wer-limitation.md`](notes/part2-wer-limitation.md).
 
 ## License
 
