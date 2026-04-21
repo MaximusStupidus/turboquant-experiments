@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TurboQuant on Parler-TTS — audio comparison</title>
+<style>
+:root {
+  --bg: #0b0d10;
+  --panel: #13161b;
+  --border: #1f232b;
+  --fg: #e8ecf2;
+  --fg-dim: #8a93a3;
+  --accent: #7aa2ff;
+  --good: #5ac58a;
+  --mid: #e6b44c;
+  --bad: #ff7a7a;
+  --baseline: #6ec4a7;
+  --q4: #a7c3ff;
+  --q3: #ffb86c;
+  --q2: #ff7a9c;
+}
+* { box-sizing: border-box; }
+html, body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, "SF Pro Text", Segoe UI, Inter, system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+  padding: 0;
+  font-feature-settings: "ss01", "ss02", "cv11";
+}
+.wrapper {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 48px 32px 96px;
+}
+header {
+  margin-bottom: 40px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--border);
+}
+h1 {
+  margin: 0 0 8px;
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+header p {
+  margin: 6px 0 0;
+  color: var(--fg-dim);
+  max-width: 700px;
+}
+.summary {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 32px;
+  align-items: start;
+  margin-top: 28px;
+}
+.summary table {
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.summary th, .summary td {
+  padding: 8px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.summary th {
+  color: var(--fg-dim);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 11px;
+}
+.summary td:nth-child(2), .summary td:nth-child(3) { font-variant-numeric: tabular-nums; }
+.legend {
+  color: var(--fg-dim);
+  font-size: 12px;
+  line-height: 1.7;
+}
+.legend strong { color: var(--fg); font-weight: 600; }
+.grid {
+  display: grid;
+  grid-template-columns: 260px repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.grid-header {
+  display: contents;
+}
+.header-cell, .row-label, .cell {
+  background: var(--panel);
+  padding: 16px 18px;
+}
+.header-cell {
+  font-weight: 600;
+  color: var(--fg);
+  background: #181c22;
+  font-size: 13px;
+}
+.grid > .header-cell:nth-child(2) { color: var(--baseline); }
+.grid > .header-cell:nth-child(3) { color: var(--q4); }
+.grid > .header-cell:nth-child(4) { color: var(--q3); }
+.grid > .header-cell:nth-child(5) { color: var(--q2); }
+.row {
+  display: contents;
+}
+.row-label {
+  background: #181c22;
+}
+.row-label .voice {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--fg);
+  text-transform: capitalize;
+}
+.row-label .text-kind {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--fg-dim);
+  margin-top: 2px;
+}
+.row-label .reference {
+  font-size: 12px;
+  color: var(--fg-dim);
+  margin-top: 10px;
+  line-height: 1.5;
+  max-height: 120px;
+  overflow: auto;
+}
+.cell audio {
+  width: 100%;
+  height: 36px;
+  border-radius: 8px;
+  filter: invert(0.88) hue-rotate(180deg);
+}
+.cell .meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.meta-chip {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--fg-dim);
+  border: 1px solid var(--border);
+}
+.meta-chip.dur { color: var(--fg); }
+.meta-chip.good { color: var(--good); border-color: rgba(90, 197, 138, 0.35); background: rgba(90, 197, 138, 0.08); }
+.meta-chip.mid { color: var(--mid); border-color: rgba(230, 180, 76, 0.35); background: rgba(230, 180, 76, 0.08); }
+.meta-chip.bad { color: var(--bad); border-color: rgba(255, 122, 122, 0.35); background: rgba(255, 122, 122, 0.08); }
+.cell .transcript {
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--fg-dim);
+  line-height: 1.5;
+  font-style: italic;
+  opacity: 0.8;
+  max-height: 80px;
+  overflow: auto;
+}
+@media (max-width: 1100px) {
+  .grid { grid-template-columns: 1fr; }
+  .header-cell { display: none; }
+  .row {
+    display: block;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .row-label {
+    display: block;
+    margin-bottom: 12px;
+  }
+  .cell {
+    display: block;
+    margin-bottom: 10px;
+  }
+}
+footer {
+  margin-top: 48px;
+  color: var(--fg-dim);
+  font-size: 12px;
+  line-height: 1.6;
+}
+footer a { color: var(--accent); text-decoration: none; }
+footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+<header>
+  <h1>TurboQuant on Parler-TTS Mini v1 &mdash; audio comparison</h1>
+  <p>
+    9 prompts (3 voices &times; 3 text lengths) generated at 4 cache
+    settings: fp16 baseline, TurboQuant 4-bit, 3-bit, and 2-bit.
+    Generation used <code>do_sample=True, temperature=0.7, seed=42</code>,
+    <code>max_length</code> per text length. Metrics: WER via Whisper
+    small.en, speaker similarity vs fp16 baseline via ECAPA-TDNN.
+  </p>
+
+  <div class="summary">
+    <table>
+      <thead>
+        <tr><th>Config</th><th>Mean WER</th><th>Mean spk-sim</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>fp16 baseline</td><td>0.54</td><td>—</td></tr><tr><td>TurboQuant 4-bit</td><td>0.35</td><td>0.64</td></tr><tr><td>TurboQuant 3-bit</td><td>0.38</td><td>0.63</td></tr><tr><td>TurboQuant 2-bit</td><td>0.56</td><td>0.67</td></tr>
+      </tbody>
+    </table>
+    <div class="legend">
+      <strong>Reading the cells.</strong>
+      Chips use red/yellow/green by threshold &mdash; WER &lt; 0.30 good,
+      0.30&ndash;0.60 mid, &gt; 0.60 bad. Speaker similarity &gt; 0.75
+      good, 0.50&ndash;0.75 mid, &lt; 0.50 bad. The reference text under
+      each row's voice label is the exact prompt fed to Parler; the
+      italicised line under each audio cell is Whisper's transcript of
+      the generated audio.
+    </div>
+  </div>
+</header>
+
+<div class="grid">
+  <div class="grid-header">
+    <div class="header-cell">prompt</div>
+  <div class="header-cell">fp16 baseline</div>
+  <div class="header-cell">TurboQuant 4-bit</div>
+  <div class="header-cell">TurboQuant 3-bit</div>
+  <div class="header-cell">TurboQuant 2-bit</div>
+  </div>
+
+<div class="row">
+  <div class="row-label"><div class="voice">jon</div><div class="text-kind">short</div><div class="reference">&ldquo;Hello, this is a test of voice quality after KV cache compression.&rdquo;</div></div>
+    <div class="cell">
+      <audio controls preload="none" src="baseline/jon__short.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">3.5s</span><span class="meta-chip wer good">WER 0.25</span></div>
+      <div class="transcript">&ldquo;Hello? This is a test of voice quality after Q's cache and...&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="tq_4bit/jon__short.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">4.1s</span><span class="meta-chip wer good">WER 0.17</span><span class="meta-chip sim good">SpkSim 0.77</span></div>
+      <div class="transcript">&ldquo;Hello, this is a test of voice quality of Jugber cache compression.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="tq_3bit/jon__short.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">3.9s</span><span class="meta-chip wer good">WER 0.25</span><span class="meta-chip sim mid">SpkSim 0.74</span></div>
+      <div class="transcript">&ldquo;Hello, this is the test of voice quality after PICACH compression.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="tq_2bit/jon__short.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">3.8s</span><span class="meta-chip wer good">WER 0.25</span><span class="meta-chip sim mid">SpkSim 0.67</span></div>
+      <div class="transcript">&ldquo;Hello, this is a test of voice quality after recursion.&rdquo;</div>
+    </div>
+</div>
+<div class="row">
+  <div class="row-label"><div class="voice">jon</div><div class="text-kind">medium</div><div class="reference">&ldquo;Hello, this message is from Dr. [redacted], [redacted], [redacted], and [redacted]. We are testing voice quality after KV cache compression on open source TurboQuant.&rdquo;</div></div>
+    <div class="cell">
+      <audio controls preload="none" src="baseline/jon__medium.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">13.8s</span><span class="meta-chip wer bad">WER 0.78</span></div>
+      <div class="transcript">&ldquo;Hello, this message is from Dr. Neuresh.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="tq_4bit/jon__medium.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">13.0s</span><span class="meta-chip wer mid">WER 0.33</span><span class="meta-chip sim mid">SpkSim 0.54</span></div>
+      <div class="transcript">&ldquo;Hello, this message is from Dr. [redacted] Jullila and Kitawan Anuksahu and [redacted]. We are testing voice quality after caching on open source TurboQuan.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="tq_3bit/jon__medium.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">13.8s</span><span class="meta-chip wer bad">WER 0.85</span><span class="meta-chip sim mid">SpkSim 0.73</span></div>
+      <div class="transcript">&ldquo;Hello, this message is from...&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="tq_2bit/jon__medium.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">13.8s</span><span class="meta-chip wer bad">WER 0.78</span><span class="meta-chip sim mid">SpkSim 0.75</span></div>
+      <div class="transcript">&ldquo;Hello, this message is from Dr. Nierstjila Enkitawan.&rdquo;</div>
+    </div>
+</div>
+<div class="row">
+  <div class="row-label"><div class="voice">jon</div><div class="text-kind">long</div><div class="reference">&ldquo;Large language models store a KV cache during text generation — cached Key and Value vectors from all previous tokens that the model reads back at each step to compute attention. At long context lengths, this cache can exceed the model weights in memory. TurboQuant compresses it.&rdquo;</div></div>
+    <div class="cell">
+      <audio controls preload="none" src="baseline/jon__long.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">27.8s</span><span class="meta-chip wer bad">WER 0.85</span></div>
+      <div class="transcript">&ldquo;Large language models store AU cache during text generation.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="tq_4bit/jon__long.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">15.8s</span><span class="meta-chip wer good">WER 0.15</span><span class="meta-chip sim bad">SpkSim 0.39</span></div>
+      <div class="transcript">&ldquo;Large language models store evo-cache during text generation. Cached key and value vectors from all previous tokens the model reads back at each step to compute attention. At long context lengths this cache can exceed the model weights in memory. TurboQuant compresses it.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="tq_3bit/jon__long.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">19.6s</span><span class="meta-chip wer good">WER 0.19</span><span class="meta-chip sim bad">SpkSim 0.41</span></div>
+      <div class="transcript">&ldquo;Large language models store a VOO cache during text generation, cached key and value vectors from all previous tokens that the model reads back at each step to compute attention. In long contexts, lengths this cache can exceed the model weights in memory.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="tq_2bit/jon__long.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">15.6s</span><span class="meta-chip wer mid">WER 0.60</span><span class="meta-chip sim bad">SpkSim 0.48</span></div>
+      <div class="transcript">&ldquo;Large language models store a new cache during text generation. Cache t and value vectors from all previous tokens that the model reads bad.&rdquo;</div>
+    </div>
+</div>
+<div class="row">
+  <div class="row-label"><div class="voice">laura</div><div class="text-kind">short</div><div class="reference">&ldquo;Hello, this is a test of voice quality after KV cache compression.&rdquo;</div></div>
+    <div class="cell">
+      <audio controls preload="none" src="baseline/laura__short.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">4.0s</span><span class="meta-chip wer good">WER 0.17</span></div>
+      <div class="transcript">&ldquo;Hello, this is a test of voice quality after GiveCache compression.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="tq_4bit/laura__short.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">3.8s</span><span class="meta-chip wer good">WER 0.17</span><span class="meta-chip sim good">SpkSim 0.83</span></div>
+      <div class="transcript">&ldquo;Hello, this is a test to voice quality after cache compression.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="tq_3bit/laura__short.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">3.8s</span><span class="meta-chip wer mid">WER 0.33</span><span class="meta-chip sim good">SpkSim 0.79</span></div>
+      <div class="transcript">&ldquo;Hello, this is a test to voice quality after refresh.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="tq_2bit/laura__short.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">4.0s</span><span class="meta-chip wer good">WER 0.25</span><span class="meta-chip sim good">SpkSim 0.76</span></div>
+      <div class="transcript">&ldquo;Hello, this is a test of voice quality after coverage.&rdquo;</div>
+    </div>
+</div>
+<div class="row">
+  <div class="row-label"><div class="voice">laura</div><div class="text-kind">medium</div><div class="reference">&ldquo;Hello, this message is from Dr. [redacted], [redacted], [redacted], and [redacted]. We are testing voice quality after KV cache compression on open source TurboQuant.&rdquo;</div></div>
+    <div class="cell">
+      <audio controls preload="none" src="baseline/laura__medium.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">13.8s</span><span class="meta-chip wer mid">WER 0.33</span></div>
+      <div class="transcript">&ldquo;Hello, this message is from Dr. Nersh, Julela, Enkidawan, and Nusahu. And Mookul, we are testing voice quality after the cache compression on open source Turbo.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="tq_4bit/laura__medium.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">12.5s</span><span class="meta-chip wer mid">WER 0.44</span><span class="meta-chip sim good">SpkSim 0.78</span></div>
+      <div class="transcript">&ldquo;Hello, this message is from Dr. Nourish Jalayla Enkid Go on, unable we are testing voice, quality after cache compression on open source Terble, Quinn&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="tq_3bit/laura__medium.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">12.9s</span><span class="meta-chip wer mid">WER 0.33</span><span class="meta-chip sim mid">SpkSim 0.74</span></div>
+      <div class="transcript">&ldquo;Hello, this message is from Dr. Nair. Nairish. Jhilaila and [redacted], we are testing voice quality after curb cache compression on open source Turbo.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="tq_2bit/laura__medium.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">13.8s</span><span class="meta-chip wer bad">WER 0.74</span><span class="meta-chip sim mid">SpkSim 0.63</span></div>
+      <div class="transcript">&ldquo;Hello, this message is from Dr. Neresh, Jalala and Futa.&rdquo;</div>
+    </div>
+</div>
+<div class="row">
+  <div class="row-label"><div class="voice">laura</div><div class="text-kind">long</div><div class="reference">&ldquo;Large language models store a KV cache during text generation — cached Key and Value vectors from all previous tokens that the model reads back at each step to compute attention. At long context lengths, this cache can exceed the model weights in memory. TurboQuant compresses it.&rdquo;</div></div>
+    <div class="cell">
+      <audio controls preload="none" src="baseline/laura__long.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">20.2s</span><span class="meta-chip wer mid">WER 0.40</span></div>
+      <div class="transcript">&ldquo;Large language models store a key during text generation, cached key and value vectors from all previous tokens that the model reads back at each step to compute attention at long context, length.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="tq_4bit/laura__long.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">17.7s</span><span class="meta-chip wer good">WER 0.17</span><span class="meta-chip sim good">SpkSim 0.84</span></div>
+      <div class="transcript">&ldquo;Large language models store of a cache during text generation, cached key and value vectors from all previous tokens that the model reads back at each step to compute attention. At long context, lengths, this cache can exceed the model weights in memory.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="tq_3bit/laura__long.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">19.0s</span><span class="meta-chip wer good">WER 0.19</span><span class="meta-chip sim good">SpkSim 0.85</span></div>
+      <div class="transcript">&ldquo;Large language models store allow cache during text generation. Cached key and value vectors from all previous tokens that the model reads back at each step to compute attention. At long context, length, this cache can exceed the model weights in memory. Tertiquan compresses.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="tq_2bit/laura__long.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">20.1s</span><span class="meta-chip wer mid">WER 0.53</span><span class="meta-chip sim good">SpkSim 0.84</span></div>
+      <div class="transcript">&ldquo;Large language models Storag have cache-during-text generation, cache key and value vectors from all previous tokens that the model reads back at each step to compute a TENCH at long contexts.&rdquo;</div>
+    </div>
+</div>
+<div class="row">
+  <div class="row-label"><div class="voice">gary</div><div class="text-kind">short</div><div class="reference">&ldquo;Hello, this is a test of voice quality after KV cache compression.&rdquo;</div></div>
+    <div class="cell">
+      <audio controls preload="none" src="baseline/gary__short.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">4.1s</span><span class="meta-chip wer good">WER 0.17</span></div>
+      <div class="transcript">&ldquo;Hello, this is a test of voice quality after backhash compression.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="tq_4bit/gary__short.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">4.3s</span><span class="meta-chip wer good">WER 0.25</span><span class="meta-chip sim good">SpkSim 0.80</span></div>
+      <div class="transcript">&ldquo;Hello, this is a test of voice quality. After Cosh compression.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="tq_3bit/gary__short.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">3.7s</span><span class="meta-chip wer good">WER 0.17</span><span class="meta-chip sim good">SpkSim 0.78</span></div>
+      <div class="transcript">&ldquo;Hello, this is a test of voice quality after compression.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="tq_2bit/gary__short.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">4.1s</span><span class="meta-chip wer good">WER 0.17</span><span class="meta-chip sim good">SpkSim 0.76</span></div>
+      <div class="transcript">&ldquo;Hello, this is a test of voice quality after GifKesh compression.&rdquo;</div>
+    </div>
+</div>
+<div class="row">
+  <div class="row-label"><div class="voice">gary</div><div class="text-kind">medium</div><div class="reference">&ldquo;Hello, this message is from Dr. [redacted], [redacted], [redacted], and [redacted]. We are testing voice quality after KV cache compression on open source TurboQuant.&rdquo;</div></div>
+    <div class="cell">
+      <audio controls preload="none" src="baseline/gary__medium.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">13.8s</span><span class="meta-chip wer bad">WER 1.00</span></div>
+      <div class="transcript">&ldquo;Hello.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="tq_4bit/gary__medium.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">13.8s</span><span class="meta-chip wer mid">WER 0.56</span><span class="meta-chip sim bad">SpkSim 0.10</span></div>
+      <div class="transcript">&ldquo;Hello. This message is from Dr. Nerish Jalala, [redacted] Dolan. I know we are testing voice quality after 2K compression.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="tq_3bit/gary__medium.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">13.8s</span><span class="meta-chip wer bad">WER 0.67</span><span class="meta-chip sim bad">SpkSim 0.17</span></div>
+      <div class="transcript">&ldquo;Hello. This message is from Dr. Narish Jalila. Angkita one. Anisahu. In Mukol we are testing voice qua-&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="tq_2bit/gary__medium.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">13.8s</span><span class="meta-chip wer bad">WER 0.89</span><span class="meta-chip sim bad">SpkSim 0.48</span></div>
+      <div class="transcript">&ldquo;Hello, this is your Vista.&rdquo;</div>
+    </div>
+</div>
+<div class="row">
+  <div class="row-label"><div class="voice">gary</div><div class="text-kind">long</div><div class="reference">&ldquo;Large language models store a KV cache during text generation — cached Key and Value vectors from all previous tokens that the model reads back at each step to compute attention. At long context lengths, this cache can exceed the model weights in memory. TurboQuant compresses it.&rdquo;</div></div>
+    <div class="cell">
+      <audio controls preload="none" src="baseline/gary__long.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">27.8s</span><span class="meta-chip wer bad">WER 0.87</span></div>
+      <div class="transcript">&ldquo;Large Language Model Store of the cache during text generation.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="tq_4bit/gary__long.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">17.5s</span><span class="meta-chip wer bad">WER 0.87</span><span class="meta-chip sim mid">SpkSim 0.70</span></div>
+      <div class="transcript">&ldquo;Large language model store evo, cache during text generation.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="tq_3bit/gary__long.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">20.4s</span><span class="meta-chip wer mid">WER 0.43</span><span class="meta-chip sim bad">SpkSim 0.48</span></div>
+      <div class="transcript">&ldquo;Large language models store a cache during text generation cached key and value vectors from all previous tokens that the model reads back at each. Set to compute attention.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="tq_2bit/gary__long.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">14.4s</span><span class="meta-chip wer bad">WER 0.83</span><span class="meta-chip sim mid">SpkSim 0.68</span></div>
+      <div class="transcript">&ldquo;Large language models store a cache during text generation.&rdquo;</div>
+    </div>
+</div>
+</div>
+
+<footer>
+  Part of the
+  <a href="https://github.com/MaximusStupidus/turboquant-experiments">turboquant-experiments</a>
+  project. Generated by
+  <code>speech-tts-improvements/parler/scripts/05_build_frontend.py</code>.
+  Load this file locally or via GitHub Pages &mdash; each audio tag
+  streams the corresponding WAV relative to this file's location.
+</footer>
+
+</div>
+</body>
+</html>
