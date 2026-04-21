@@ -1,0 +1,545 @@
+{
+  "42": {
+    "baseline": {
+      "jon__short": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks."
+      },
+      "jon__medium": {
+        "wer": 0.04,
+        "transcript": "The birch canoe slid on the smooth planks, glue the sheet to the dark blue background. It's easy to tell the depth of a well."
+      },
+      "jon__long": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch."
+      },
+      "laura__short": {
+        "wer": 0.125,
+        "transcript": "The birch canoes slid on the smooth planks."
+      },
+      "laura__medium": {
+        "wer": 0.04,
+        "transcript": "The birch canoe slid on the smooth planks, glue the sheet to the dark blue background. It's easy to tell the depth of a well."
+      },
+      "laura__long": {
+        "wer": 0.0417,
+        "transcript": "The birch canoe is slid on the smooth planks, glue the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch."
+      },
+      "gary__short": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks."
+      },
+      "gary__medium": {
+        "wer": 0.08,
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue. Background? It's easy to tell the depth of a well."
+      },
+      "gary__long": {
+        "wer": 0.0625,
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare dish. Rice is often served in. Round bowls, the juice of lemons, makes fine punch."
+      }
+    },
+    "tq_4bit": {
+      "jon__short": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks.",
+        "speaker_similarity": 0.9165
+      },
+      "jon__medium": {
+        "wer": 0.04,
+        "transcript": "The birch canoe slid on the smooth planks. Lue the sheet to the dark blue background. It's easy to tell the depth of a well.",
+        "speaker_similarity": 0.8109
+      },
+      "jon__long": {
+        "wer": 0.0625,
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of well these days a chicken leg is a rare dish. Rice is often served in round bowls the juice of lemons makes fine punch.",
+        "speaker_similarity": 0.7291
+      },
+      "laura__short": {
+        "wer": 0.125,
+        "transcript": "The birch canoes slid on the smooth planks.",
+        "speaker_similarity": 0.7788
+      },
+      "laura__medium": {
+        "wer": 0.08,
+        "transcript": "The birch canoe slid on the smooth planks, glued the sheet to the dark blue background. It's easy to tell the depth of a well.",
+        "speaker_similarity": 0.7612
+      },
+      "laura__long": {
+        "wer": 0.0417,
+        "transcript": "The birch canoe slid on the smooth planks, glued the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch.",
+        "speaker_similarity": 0.4266
+      },
+      "gary__short": {
+        "wer": 0.125,
+        "transcript": "The birch canoe slid on smooth planks.",
+        "speaker_similarity": 0.8779
+      },
+      "gary__medium": {
+        "wer": 0.08,
+        "transcript": "The birch canoe slid on the smooth planks, glued the sheet to the dark blue background. It's easy to tell the depth of a well.",
+        "speaker_similarity": 0.5217
+      },
+      "gary__long": {
+        "wer": 0.0208,
+        "transcript": "The birch canoes slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch.",
+        "speaker_similarity": 0.6128
+      }
+    },
+    "tq_3bit": {
+      "jon__short": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks.",
+        "speaker_similarity": 0.8998
+      },
+      "jon__medium": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well.",
+        "speaker_similarity": 0.7795
+      },
+      "jon__long": {
+        "wer": 0.0208,
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare dish rice is often served in round bowls. The juice of lemons makes fine punch.",
+        "speaker_similarity": 0.6459
+      },
+      "laura__short": {
+        "wer": 0.125,
+        "transcript": "the birch canoes slid on the smooth planks.",
+        "speaker_similarity": 0.8466
+      },
+      "laura__medium": {
+        "wer": 0.28,
+        "transcript": "The birch canoes slid on the smooth planks, glued the sheet to the dark blue background. It's easy to tell the depth.",
+        "speaker_similarity": 0.8195
+      },
+      "laura__long": {
+        "wer": 0.1875,
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well these days. A chicken leg is a rare dish. Rice is often served in round bowls.",
+        "speaker_similarity": 0.5396
+      },
+      "gary__short": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks.",
+        "speaker_similarity": 0.8064
+      },
+      "gary__medium": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well.",
+        "speaker_similarity": 0.5073
+      },
+      "gary__long": {
+        "wer": 0.4375,
+        "transcript": "The birch canoes slid on the smooth planks, glued the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare... ...dus... ...er... ...er... ...er... ...er... ...er... ...er... ...er... ...er... ...er... ...er... ...er... ...er... ...er... ...er... ...er... ...er...",
+        "speaker_similarity": 0.5732
+      }
+    },
+    "tq_2bit": {
+      "jon__short": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks.",
+        "speaker_similarity": 0.8767
+      },
+      "jon__medium": {
+        "wer": 0.12,
+        "transcript": "The birch canoe slid on the smooth blue sheet to the dark blue background. It's easy to tell the depth of a well.",
+        "speaker_similarity": 0.8035
+      },
+      "jon__long": {
+        "wer": 0.2917,
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of well. These days a chicken leg is a rare dish. Rise is off.",
+        "speaker_similarity": 0.6408
+      },
+      "laura__short": {
+        "wer": 0.125,
+        "transcript": "the birch canoes slid on the smooth planks.",
+        "speaker_similarity": 0.7901
+      },
+      "laura__medium": {
+        "wer": 0.08,
+        "transcript": "The birch canoe slid on the smooth links glue the sheet to the dark blue background. It's easy to tell the depths of a well.",
+        "speaker_similarity": 0.833
+      },
+      "laura__long": {
+        "wer": 0.25,
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of well. These days a chicken leg is a rare dish. Rice is often chur's.",
+        "speaker_similarity": 0.6175
+      },
+      "gary__short": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks.",
+        "speaker_similarity": 0.8324
+      },
+      "gary__medium": {
+        "wer": 0.32,
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue. Boke. Blue background. It's easy to tell.",
+        "speaker_similarity": 0.5469
+      },
+      "gary__long": {
+        "wer": 0.6875,
+        "transcript": "The birch canoe slid on the smooth planks, ghoul the sheet to the dark blue plus bull, now one stays a-germ. The acklin deserve this rude juice of terror.",
+        "speaker_similarity": 0.5713
+      }
+    }
+  },
+  "7": {
+    "baseline": {
+      "jon__short": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks."
+      },
+      "jon__medium": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well."
+      },
+      "jon__long": {
+        "wer": 0.0417,
+        "transcript": "The birch can use slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch."
+      },
+      "laura__short": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks."
+      },
+      "laura__medium": {
+        "wer": 0.04,
+        "transcript": "The birch canoe slid on the smooth planks, glue the sheet to the dark blue background. It's easy to tell the depth of a well."
+      },
+      "laura__long": {
+        "wer": 0.0625,
+        "transcript": "The birch canoose little on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of the well. These days a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch."
+      },
+      "gary__short": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks."
+      },
+      "gary__medium": {
+        "wer": 0.2,
+        "transcript": "The birch can you slide on the smooth planks. Clue the sheet to the dark blue background. It's easy to tell the depth of the well."
+      },
+      "gary__long": {
+        "wer": 0.0417,
+        "transcript": "The birch canoes slid on the smooth planks, glue the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch."
+      }
+    },
+    "tq_4bit": {
+      "jon__short": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks.",
+        "speaker_similarity": 0.8933
+      },
+      "jon__medium": {
+        "wer": 0.08,
+        "transcript": "The birch canoe slid on the smooth planks, blew the sheet to the dark blue background. It's easy to tell the depth of a well.",
+        "speaker_similarity": 0.8008
+      },
+      "jon__long": {
+        "wer": 0.0417,
+        "transcript": "The birch canoes, slid on the smooth planks, glue the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch.",
+        "speaker_similarity": 0.7534
+      },
+      "laura__short": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks.",
+        "speaker_similarity": 0.8632
+      },
+      "laura__medium": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well.",
+        "speaker_similarity": 0.8713
+      },
+      "laura__long": {
+        "wer": 0.0625,
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare dish. Rice is often served in. See the round bowls. The juice of lemons makes fine punch.",
+        "speaker_similarity": 0.6664
+      },
+      "gary__short": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks.",
+        "speaker_similarity": 0.7886
+      },
+      "gary__medium": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well.",
+        "speaker_similarity": 0.616
+      },
+      "gary__long": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch.",
+        "speaker_similarity": 0.6368
+      }
+    },
+    "tq_3bit": {
+      "jon__short": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks.",
+        "speaker_similarity": 0.9027
+      },
+      "jon__medium": {
+        "wer": 0.04,
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of the well.",
+        "speaker_similarity": 0.7832
+      },
+      "jon__long": {
+        "wer": 0.25,
+        "transcript": "The birch canoose lid on the smooth planks, glue the sheet to the dark blue background, it's easy to tell the depth of a well. The idea of chicken leg is a rare dish. Rice is often served in round bowls, the juice of lemon blanc-",
+        "speaker_similarity": 0.6565
+      },
+      "laura__short": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks.",
+        "speaker_similarity": 0.8523
+      },
+      "laura__medium": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well.",
+        "speaker_similarity": 0.8077
+      },
+      "laura__long": {
+        "wer": 0.0417,
+        "transcript": "The birch canoe slid on smooth planks. Glued the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch.",
+        "speaker_similarity": 0.7057
+      },
+      "gary__short": {
+        "wer": 0.125,
+        "transcript": "The birch canoes slid on the smooth planks.",
+        "speaker_similarity": 0.8707
+      },
+      "gary__medium": {
+        "wer": 0.04,
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depths of a well.",
+        "speaker_similarity": 0.6744
+      },
+      "gary__long": {
+        "wer": 0.0208,
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well. These days, a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch.",
+        "speaker_similarity": 0.676
+      }
+    },
+    "tq_2bit": {
+      "jon__short": {
+        "wer": 0.125,
+        "transcript": "The birch canoe slid on the smooth plane.",
+        "speaker_similarity": 0.8782
+      },
+      "jon__medium": {
+        "wer": 0.32,
+        "transcript": "The birch canoe slid on the smooth planks. Glow, the sheet of dark blue bokun it's easy to veld. Dupps of a lull.",
+        "speaker_similarity": 0.714
+      },
+      "jon__long": {
+        "wer": 0.5208,
+        "transcript": "The birch canoe slid on the smooth flanks, glued the sheet to the dark blue blue background. It's easy to tell the depth of all these days of chicken-lie-d.",
+        "speaker_similarity": 0.6791
+      },
+      "laura__short": {
+        "wer": 0.25,
+        "transcript": "The birch canoe slid on the smooth.",
+        "speaker_similarity": 0.8756
+      },
+      "laura__medium": {
+        "wer": 0.04,
+        "transcript": "The birch canoe slid on the smooth planks, glue the sheet to the dark blue background. It's easy to tell the depth of a well.",
+        "speaker_similarity": 0.8022
+      },
+      "laura__long": {
+        "wer": 0.6875,
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background in any style. Fat and serve in cherry. See? Yee lah. Kool egg sa hain. Sibber si.",
+        "speaker_similarity": 0.724
+      },
+      "gary__short": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks.",
+        "speaker_similarity": 0.7073
+      },
+      "gary__medium": {
+        "wer": 0.12,
+        "transcript": "The birch canoe slid on the smooth planks. Glue this sheet to the dark blue background. It's easy to tell the depth of the wall.",
+        "speaker_similarity": 0.5899
+      },
+      "gary__long": {
+        "wer": 0.4792,
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue. Background is easy. Till the depth of a well, these days a chicken leg, is a rare size.",
+        "speaker_similarity": 0.5525
+      }
+    }
+  },
+  "19": {
+    "baseline": {
+      "jon__short": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks."
+      },
+      "jon__medium": {
+        "wer": 0.16,
+        "transcript": "The birch canoe slid on the smooth planks, glue the sheet to the dark blue background round. It's easy to tell the depth of the well."
+      },
+      "jon__long": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch."
+      },
+      "laura__short": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks."
+      },
+      "laura__medium": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well."
+      },
+      "laura__long": {
+        "wer": 0.0208,
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well. These days the chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch."
+      },
+      "gary__short": {
+        "wer": 0.125,
+        "transcript": "The birch canoe slid on the smooth plinks."
+      },
+      "gary__medium": {
+        "wer": 0.04,
+        "transcript": "The birch canoes slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well."
+      },
+      "gary__long": {
+        "wer": 0.0417,
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well. These days, a chicken leg is a rare dish. Rice is often served in round bowls. The truce of lemons makes fine punch."
+      }
+    },
+    "tq_4bit": {
+      "jon__short": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks.",
+        "speaker_similarity": 0.9078
+      },
+      "jon__medium": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well.",
+        "speaker_similarity": 0.847
+      },
+      "jon__long": {
+        "wer": 0.0208,
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of well. These days a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch.",
+        "speaker_similarity": 0.8147
+      },
+      "laura__short": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks.",
+        "speaker_similarity": 0.8338
+      },
+      "laura__medium": {
+        "wer": 0.04,
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet with the dark blue background. It's easy to tell the depth of a well.",
+        "speaker_similarity": 0.8877
+      },
+      "laura__long": {
+        "wer": 0.1875,
+        "transcript": "The birch canoe slid on the smooth planks glue the sheet to the dark blue background It's easy to tell the depth. Oh well These days a chicken leg is a rare dish rice is often served in round bowls The juice of lemons makes fine punch",
+        "speaker_similarity": 0.6868
+      },
+      "gary__short": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks.",
+        "speaker_similarity": 0.8392
+      },
+      "gary__medium": {
+        "wer": 0.12,
+        "transcript": "The birch, canoe, slid on the smooth planks. Glue the sheet to the dark blue background. And easy to tell the depth of a well.",
+        "speaker_similarity": 0.6473
+      },
+      "gary__long": {
+        "wer": 0.0833,
+        "transcript": "The birch canoe slid on the smooth planks, glued the sheet to the dark blue background. It's easy to tell the depth of a well these days. A chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch.",
+        "speaker_similarity": 0.7234
+      }
+    },
+    "tq_3bit": {
+      "jon__short": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks.",
+        "speaker_similarity": 0.9039
+      },
+      "jon__medium": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well.",
+        "speaker_similarity": 0.8422
+      },
+      "jon__long": {
+        "wer": 0.2708,
+        "transcript": "The birch canoe slid on the smooth planks, glue the sheet to the dark blue blues as days. A chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch.",
+        "speaker_similarity": 0.7884
+      },
+      "laura__short": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks.",
+        "speaker_similarity": 0.8133
+      },
+      "laura__medium": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well.",
+        "speaker_similarity": 0.8428
+      },
+      "laura__long": {
+        "wer": 0.0625,
+        "transcript": "The bird can now slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well. These days a chicken leg is a rare dish. Rice is often served in round bowls. The juice of lemons makes fine punch.",
+        "speaker_similarity": 0.7024
+      },
+      "gary__short": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks.",
+        "speaker_similarity": 0.7461
+      },
+      "gary__medium": {
+        "wer": 0.12,
+        "transcript": "The birch-canoe slid on the smooth planks. Glue the sheet to the dark blue. Blue background. It's easy to tell the depth of a well.",
+        "speaker_similarity": 0.6673
+      },
+      "gary__long": {
+        "wer": 0.1042,
+        "transcript": "The birch canoe slid on the smooth planks, glued the sheet to the dark blue background. It's easy till the depth of a well. These days a chicken leg is a rare dish. Rice is often served in round balls. The juice of lemons makes fine punch.",
+        "speaker_similarity": 0.6023
+      }
+    },
+    "tq_2bit": {
+      "jon__short": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks.",
+        "speaker_similarity": 0.9116
+      },
+      "jon__medium": {
+        "wer": 0.08,
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheets to the dark blue-boom background. It's easy to tell the depth of a well.",
+        "speaker_similarity": 0.8161
+      },
+      "jon__long": {
+        "wer": 0.375,
+        "transcript": "The birch canoe slid on the smooth planks, glue the sheet to the dark blue background. Itty-sitty, and he back the well. These days a chicken leg is a rare dish, rice is often served in roundals.",
+        "speaker_similarity": 0.7206
+      },
+      "laura__short": {
+        "wer": 0.0,
+        "transcript": "The birch canoe slid on the smooth planks.",
+        "speaker_similarity": 0.8246
+      },
+      "laura__medium": {
+        "wer": 0.08,
+        "transcript": "The birch canoe slid on the smooth planks, glued the sheet to the dark blue background. It's easy to tell the depth of a well.",
+        "speaker_similarity": 0.8665
+      },
+      "laura__long": {
+        "wer": 0.5417,
+        "transcript": "The birch canoe slid on the smooth planks, glued the sheet to the dark blue background. It's easy to tell the depth of all these days. I t'enk, shazazwa apo, fari.",
+        "speaker_similarity": 0.6334
+      },
+      "gary__short": {
+        "wer": 0.0,
+        "transcript": "the birch canoe slid on the smooth planks.",
+        "speaker_similarity": 0.7533
+      },
+      "gary__medium": {
+        "wer": 0.36,
+        "transcript": "The birch canoe slid on. The smooth planks. Glue the sheet to the dark blue background. It's easy. And xtit.",
+        "speaker_similarity": 0.5994
+      },
+      "gary__long": {
+        "wer": 0.2917,
+        "transcript": "The birch cano is slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of a well. These azzas, a ticking leg, is a rare dish. Rises often served in round bowls. Biff!",
+        "speaker_similarity": 0.5543
+      }
+    }
+  }
+}

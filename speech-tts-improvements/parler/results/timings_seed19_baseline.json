@@ -1,0 +1,51 @@
+{
+  "config": "baseline",
+  "seed": 19,
+  "per_sample": {
+    "jon__short": {
+      "gen_time_sec": 3.049,
+      "audio_duration_sec": 1.939,
+      "rtf": 1.572
+    },
+    "jon__medium": {
+      "gen_time_sec": 9.921,
+      "audio_duration_sec": 6.757,
+      "rtf": 1.468
+    },
+    "jon__long": {
+      "gen_time_sec": 19.665,
+      "audio_duration_sec": 13.293,
+      "rtf": 1.479
+    },
+    "laura__short": {
+      "gen_time_sec": 3.343,
+      "audio_duration_sec": 2.276,
+      "rtf": 1.469
+    },
+    "laura__medium": {
+      "gen_time_sec": 11.208,
+      "audio_duration_sec": 7.663,
+      "rtf": 1.463
+    },
+    "laura__long": {
+      "gen_time_sec": 23.385,
+      "audio_duration_sec": 15.859,
+      "rtf": 1.475
+    },
+    "gary__short": {
+      "gen_time_sec": 4.001,
+      "audio_duration_sec": 2.612,
+      "rtf": 1.532
+    },
+    "gary__medium": {
+      "gen_time_sec": 15.755,
+      "audio_duration_sec": 10.67,
+      "rtf": 1.477
+    },
+    "gary__long": {
+      "gen_time_sec": 26.325,
+      "audio_duration_sec": 17.717,
+      "rtf": 1.486
+    }
+  }
+}

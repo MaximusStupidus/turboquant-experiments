@@ -1,0 +1,51 @@
+{
+  "config": "tq_2bit",
+  "seed": 19,
+  "per_sample": {
+    "jon__short": {
+      "gen_time_sec": 4.31,
+      "audio_duration_sec": 1.962,
+      "rtf": 2.197
+    },
+    "jon__medium": {
+      "gen_time_sec": 21.203,
+      "audio_duration_sec": 7.5,
+      "rtf": 2.827
+    },
+    "jon__long": {
+      "gen_time_sec": 46.693,
+      "audio_duration_sec": 15.859,
+      "rtf": 2.944
+    },
+    "laura__short": {
+      "gen_time_sec": 5.331,
+      "audio_duration_sec": 2.264,
+      "rtf": 2.355
+    },
+    "laura__medium": {
+      "gen_time_sec": 22.173,
+      "audio_duration_sec": 7.79,
+      "rtf": 2.846
+    },
+    "laura__long": {
+      "gen_time_sec": 43.233,
+      "audio_duration_sec": 14.652,
+      "rtf": 2.951
+    },
+    "gary__short": {
+      "gen_time_sec": 7.911,
+      "audio_duration_sec": 3.146,
+      "rtf": 2.514
+    },
+    "gary__medium": {
+      "gen_time_sec": 32.006,
+      "audio_duration_sec": 11.169,
+      "rtf": 2.866
+    },
+    "gary__long": {
+      "gen_time_sec": 50.687,
+      "audio_duration_sec": 17.276,
+      "rtf": 2.934
+    }
+  }
+}

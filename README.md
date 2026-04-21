@@ -128,14 +128,20 @@ The `notes/` directory contains the learning journey — written explanations of
 
 ### Results
 
-Evaluated on **Parler-TTS Mini v1** (880M), 9 Harvard-sentence prompts × 3 voices, Whisper small.en WER.
+Evaluated on **Parler-TTS Mini v1** (880M), 9 Harvard-sentence prompts × 3 voices, **3 seeds per cell** (seeds 7 / 19 / 42), Whisper small.en WER. Error bars are per-prompt std across seeds.
 
-| Config | Mean WER | Median WER | Mean spk-sim vs fp16 |
-|---|---:|---:|---:|
-| fp16 baseline | **0.04** | 0.04 | — |
-| TurboQuant 4-bit | 0.06 | 0.06 | 0.72 |
-| TurboQuant 3-bit | 0.12 | 0.02 | 0.71 |
-| TurboQuant 2-bit | **0.21** | 0.13 | 0.72 |
+| Config | Mean WER ± std | Mean spk-sim vs fp16 ± std |
+|---|:--:|:--:|
+| fp16 baseline | **0.043 ± 0.029** | — |
+| TurboQuant 4-bit | **0.045 ± 0.025** | 0.760 ± 0.109 |
+| TurboQuant 3-bit | **0.079 ± 0.064** | 0.750 ± 0.100 |
+| TurboQuant 2-bit | **0.228 ± 0.180** | 0.730 ± 0.110 |
+
+**How to read the error bars.**
+- **4-bit vs baseline**: 0.045 ± 0.025 overlaps completely with 0.043 ± 0.029. At n=27 (3 seeds × 9 prompts), 4-bit is **statistically indistinguishable** from baseline — the compression is effectively free.
+- **2-bit vs baseline**: 0.228 − 0.043 = 0.185, much larger than either std. **Clearly degraded.**
+- **3-bit vs baseline**: 0.079 − 0.043 = 0.036, within 1 std. Grey zone at this sample size; would need a larger benchmark to resolve.
+- The **large std at 2-bit** (0.180) reflects per-prompt variance — some 2-bit clips stay near 0% WER (short prompts, residual-buffer-dominated) while others degrade to 50%+ (long prompts with heavy quantization).
 
 **Ablation at 2-bit** (what does TurboQuant's random projection specifically contribute?):
 

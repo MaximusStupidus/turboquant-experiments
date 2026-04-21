@@ -15,14 +15,35 @@ between baseline and quantized generations of the same prompt.
 
 Using **Harvard Sentences** (IEEE 1969, the standard phonetically-
 balanced TTS benchmark) — common English words, no proper nouns,
-no acronyms.
+no acronyms. **3 seeds per cell** (7 / 19 / 42), so the numbers
+below are means with per-prompt std across seeds.
 
-| Config | Mean WER | Median WER | Mean spk-sim vs fp16 | Mean RTF | Peak GPU |
-|---|---:|---:|---:|---:|---:|
-| fp16 baseline | **0.04** (4%) | 0.04 | — | 1.45 | 3.0 GB |
-| TurboQuant 4-bit | 0.06 | 0.06 | 0.72 | 2.62 | 3.0 GB |
-| TurboQuant 3-bit | 0.12 | 0.02 | 0.71 | 2.62 | 3.0 GB |
-| TurboQuant 2-bit | **0.21** (21%) | 0.13 | 0.72 | 2.88 | 3.0 GB |
+| Config | Mean WER ± std | Mean spk-sim vs fp16 ± std | Mean RTF | Peak GPU |
+|---|:--:|:--:|---:|---:|
+| fp16 baseline | **0.043 ± 0.029** | — | 1.45 | 3.0 GB |
+| TurboQuant 4-bit | **0.045 ± 0.025** | 0.760 ± 0.109 | 2.62 | 3.0 GB |
+| TurboQuant 3-bit | **0.079 ± 0.064** | 0.750 ± 0.100 | 2.62 | 3.0 GB |
+| TurboQuant 2-bit | **0.228 ± 0.180** | 0.730 ± 0.110 | 2.88 | 3.0 GB |
+
+### What the error bars say
+
+| Comparison | ΔWER | Is it real? |
+|---|---:|:--:|
+| 4-bit vs baseline | +0.002 | **No** — indistinguishable at n=27 |
+| 3-bit vs baseline | +0.036 | Within 1σ — grey zone |
+| 2-bit vs baseline | +0.185 | **Yes** — 6σ of baseline noise |
+
+The 4-bit result is more surprising multi-seed than single-seed:
+the single-seed (seed=42) sweep showed 4-bit WER 0.064, making it
+look ~50% worse than baseline. With two more seeds it regresses to
+~baseline. Likely story: seed=42 rolled an unlucky trajectory on
+2 of the 9 4-bit prompts, inflating the single-seed mean. Multi-seed
+averages that out. Same lesson applies to the 3-bit number —
+single-seed 0.117 was a ~50% overstatement.
+
+**The 2-bit number holds up.** 0.228 mean with 0.180 per-prompt
+std and a 0.185 delta-vs-baseline is well outside sampling noise —
+quantization at 2-bit genuinely hurts intelligibility.
 
 ### Ablation at 2-bit
 
