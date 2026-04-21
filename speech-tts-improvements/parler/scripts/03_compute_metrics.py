@@ -22,7 +22,7 @@ sys.path.insert(0, os.path.join(REPO_ROOT, "speech-tts-improvements", "parler"))
 from voices_and_texts import VOICES, TEXTS
 
 RESULTS_DIR = os.path.join(REPO_ROOT, "speech-tts-improvements/parler/results")
-CONFIGS = ["baseline", "tq_4bit", "tq_3bit", "tq_2bit"]
+CONFIGS = ["baseline", "tq_4bit", "tq_3bit", "tq_2bit", "noproj_2bit", "naive_2bit"]
 
 print("=== Computing audio quality metrics ===\n")
 

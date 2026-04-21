@@ -249,5 +249,135 @@
       },
       "speaker_similarity_vs_baseline": 0.5713
     }
+  },
+  "noproj_2bit": {
+    "jon__short": {
+      "wer": {
+        "transcript": "The Birch Canoe slid on the planks.",
+        "wer": 0.125
+      },
+      "speaker_similarity_vs_baseline": 0.8668
+    },
+    "jon__medium": {
+      "wer": {
+        "transcript": "The birch canoe slid in smooth planks, blew the sheets of the dark...",
+        "wer": 0.72
+      },
+      "speaker_similarity_vs_baseline": 0.7008
+    },
+    "jon__long": {
+      "wer": {
+        "transcript": "The birch canoes, lid planks, glues, ithos, ithos, ithos, ithos, ithos, ithos, ithos, ithos,",
+        "wer": 0.9583
+      },
+      "speaker_similarity_vs_baseline": 0.5048
+    },
+    "laura__short": {
+      "wer": {
+        "transcript": "The birch canoe's slither.",
+        "wer": 0.75
+      },
+      "speaker_similarity_vs_baseline": 0.7673
+    },
+    "laura__medium": {
+      "wer": {
+        "transcript": "The birch canoe slid on smooth lanes. Glue the sheet to the dark pool.",
+        "wer": 0.52
+      },
+      "speaker_similarity_vs_baseline": 0.7599
+    },
+    "laura__long": {
+      "wer": {
+        "transcript": "The birch canoe slid on the smooth planks.",
+        "wer": 0.8333
+      },
+      "speaker_similarity_vs_baseline": 0.4515
+    },
+    "gary__short": {
+      "wer": {
+        "transcript": "The birch canoe slid on the sets.",
+        "wer": 0.25
+      },
+      "speaker_similarity_vs_baseline": 0.6755
+    },
+    "gary__medium": {
+      "wer": {
+        "transcript": "The birch can slund. Hymes. Do is give to the six.",
+        "wer": 0.84
+      },
+      "speaker_similarity_vs_baseline": 0.415
+    },
+    "gary__long": {
+      "wer": {
+        "transcript": "The birch canoe slid on smooth look from... Kichun!",
+        "wer": 0.875
+      },
+      "speaker_similarity_vs_baseline": 0.5205
+    }
+  },
+  "naive_2bit": {
+    "jon__short": {
+      "wer": {
+        "transcript": "The birch canoe slid on the smooth plank.",
+        "wer": 0.125
+      },
+      "speaker_similarity_vs_baseline": 0.8366
+    },
+    "jon__medium": {
+      "wer": {
+        "transcript": "The birch canoe slid on the smooth planks, glue the sheets with the dark blue background. It's easy to tell the depth of a well.",
+        "wer": 0.12
+      },
+      "speaker_similarity_vs_baseline": 0.7711
+    },
+    "jon__long": {
+      "wer": {
+        "transcript": "The birch canoes slid on the smooth planks glue the sheet to the dark blue background. It's easy to tell the depth of the well. These days it's chicken leg. It's a rare dish. Rice is often served.",
+        "wer": 0.3542
+      },
+      "speaker_similarity_vs_baseline": 0.6414
+    },
+    "laura__short": {
+      "wer": {
+        "transcript": "The birch canoes slid on the smooth planks.",
+        "wer": 0.125
+      },
+      "speaker_similarity_vs_baseline": 0.7507
+    },
+    "laura__medium": {
+      "wer": {
+        "transcript": "The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of the well.",
+        "wer": 0.04
+      },
+      "speaker_similarity_vs_baseline": 0.803
+    },
+    "laura__long": {
+      "wer": {
+        "transcript": "The birch canoe slid on the smooth flanks and glued the sheet to the dark blue background. It's easy to tell the depth of a well. These days the chicken claire and a rifflech. Round four. The soap from Net Rancher is the simple chocolate color that's the flavor of an house.",
+        "wer": 0.5
+      },
+      "speaker_similarity_vs_baseline": 0.5884
+    },
+    "gary__short": {
+      "wer": {
+        "transcript": "The birch canoe slid on the smooth planks.",
+        "wer": 0.0
+      },
+      "speaker_similarity_vs_baseline": 0.7908
+    },
+    "gary__medium": {
+      "wer": {
+        "transcript": "The birch canoe, slid on smooth. Clinks, glue the sheet. To the dark blue background. It's easy to tell the truth of them. Oh well.",
+        "wer": 0.32
+      },
+      "speaker_similarity_vs_baseline": 0.2914
+    },
+    "gary__long": {
+      "wer": {
+        "transcript": "The birch canoe slid on the smooth blanks, glued the sheet to the dark blue background. It's easy to tell the depth of a well. These days the chicken leg is a rare dish. Rice is often served in roundness or ownness.",
+        "wer": 0.25
+      },
+      "speaker_similarity_vs_baseline": 0.6171
+    }
   }
 }

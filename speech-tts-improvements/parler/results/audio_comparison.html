@@ -84,12 +84,13 @@ header p {
 .legend strong { color: var(--fg); font-weight: 600; }
 .grid {
   display: grid;
-  grid-template-columns: 260px repeat(4, 1fr);
+  grid-template-columns: 220px repeat(6, 1fr);
   gap: 1px;
   background: var(--border);
   border: 1px solid var(--border);
   border-radius: 12px;
   overflow: hidden;
+  font-size: 12px;
 }
 .grid-header {
   display: contents;
@@ -108,6 +109,8 @@ header p {
 .grid > .header-cell:nth-child(3) { color: var(--q4); }
 .grid > .header-cell:nth-child(4) { color: var(--q3); }
 .grid > .header-cell:nth-child(5) { color: var(--q2); }
+.grid > .header-cell:nth-child(6) { color: #ff7a7a; }
+.grid > .header-cell:nth-child(7) { color: #c4b5fd; }
 .row {
   display: contents;
 }
@@ -218,7 +221,7 @@ footer a:hover { text-decoration: underline; }
         <tr><th>Config</th><th>Mean WER</th><th>Mean spk-sim</th></tr>
       </thead>
       <tbody>
-        <tr><td>fp16 baseline</td><td>0.04</td><td>—</td></tr><tr><td>TurboQuant 4-bit</td><td>0.06</td><td>0.72</td></tr><tr><td>TurboQuant 3-bit</td><td>0.12</td><td>0.71</td></tr><tr><td>TurboQuant 2-bit</td><td>0.21</td><td>0.72</td></tr>
+        <tr><td>fp16 baseline</td><td>0.04</td><td>—</td></tr><tr><td>TurboQuant 4-bit</td><td>0.06</td><td>0.72</td></tr><tr><td>TurboQuant 3-bit</td><td>0.12</td><td>0.71</td></tr><tr><td>TurboQuant 2-bit</td><td>0.21</td><td>0.72</td></tr><tr><td>No-projection 2-bit</td><td>0.65</td><td>0.63</td></tr><tr><td>Naive min-max 2-bit</td><td>0.20</td><td>0.68</td></tr>
       </tbody>
     </table>
     <div class="legend">
@@ -240,6 +243,8 @@ footer a:hover { text-decoration: underline; }
   <div class="header-cell">TurboQuant 4-bit</div>
   <div class="header-cell">TurboQuant 3-bit</div>
   <div class="header-cell">TurboQuant 2-bit</div>
+  <div class="header-cell">No-projection 2-bit</div>
+  <div class="header-cell">Naive min-max 2-bit</div>
   </div>
 
 <div class="row">
@@ -260,6 +265,14 @@ footer a:hover { text-decoration: underline; }
       <audio controls preload="none" src="tq_2bit/jon__short.wav"></audio>
       <div class="meta"><span class="meta-chip dur">2.6s</span><span class="meta-chip wer good">WER 0.00</span><span class="meta-chip sim good">SpkSim 0.88</span></div>
       <div class="transcript">&ldquo;The birch canoe slid on the smooth planks.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="noproj_2bit/jon__short.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">2.5s</span><span class="meta-chip wer good">WER 0.12</span><span class="meta-chip sim good">SpkSim 0.87</span></div>
+      <div class="transcript">&ldquo;The Birch Canoe slid on the planks.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="naive_2bit/jon__short.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">2.3s</span><span class="meta-chip wer good">WER 0.12</span><span class="meta-chip sim good">SpkSim 0.84</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on the smooth plank.&rdquo;</div>
     </div>
 </div>
 <div class="row">
@@ -280,6 +293,14 @@ footer a:hover { text-decoration: underline; }
       <audio controls preload="none" src="tq_2bit/jon__medium.wav"></audio>
       <div class="meta"><span class="meta-chip dur">7.8s</span><span class="meta-chip wer good">WER 0.12</span><span class="meta-chip sim good">SpkSim 0.80</span></div>
       <div class="transcript">&ldquo;The birch canoe slid on the smooth blue sheet to the dark blue background. It's easy to tell the depth of a well.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="noproj_2bit/jon__medium.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">5.1s</span><span class="meta-chip wer bad">WER 0.72</span><span class="meta-chip sim mid">SpkSim 0.70</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid in smooth planks, blew the sheets of the dark...&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="naive_2bit/jon__medium.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">7.0s</span><span class="meta-chip wer good">WER 0.12</span><span class="meta-chip sim good">SpkSim 0.77</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on the smooth planks, glue the sheets with the dark blue background. It's easy to tell the depth of a well.&rdquo;</div>
     </div>
 </div>
 <div class="row">
@@ -300,6 +321,14 @@ footer a:hover { text-decoration: underline; }
       <audio controls preload="none" src="tq_2bit/jon__long.wav"></audio>
       <div class="meta"><span class="meta-chip dur">14.4s</span><span class="meta-chip wer good">WER 0.29</span><span class="meta-chip sim mid">SpkSim 0.64</span></div>
       <div class="transcript">&ldquo;The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of well. These days a chicken leg is a rare dish. Rise is off.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="noproj_2bit/jon__long.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">10.3s</span><span class="meta-chip wer bad">WER 0.96</span><span class="meta-chip sim mid">SpkSim 0.50</span></div>
+      <div class="transcript">&ldquo;The birch canoes, lid planks, glues, ithos, ithos, ithos, ithos, ithos, ithos, ithos, ithos,&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="naive_2bit/jon__long.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">17.2s</span><span class="meta-chip wer mid">WER 0.35</span><span class="meta-chip sim mid">SpkSim 0.64</span></div>
+      <div class="transcript">&ldquo;The birch canoes slid on the smooth planks glue the sheet to the dark blue background. It's easy to tell the depth of the well. These days it's chicken leg. It's a rare dish. Rice is often served.&rdquo;</div>
     </div>
 </div>
 <div class="row">
@@ -320,6 +349,14 @@ footer a:hover { text-decoration: underline; }
       <audio controls preload="none" src="tq_2bit/laura__short.wav"></audio>
       <div class="meta"><span class="meta-chip dur">2.8s</span><span class="meta-chip wer good">WER 0.12</span><span class="meta-chip sim good">SpkSim 0.79</span></div>
       <div class="transcript">&ldquo;the birch canoes slid on the smooth planks.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="noproj_2bit/laura__short.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">2.6s</span><span class="meta-chip wer bad">WER 0.75</span><span class="meta-chip sim good">SpkSim 0.77</span></div>
+      <div class="transcript">&ldquo;The birch canoe's slither.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="naive_2bit/laura__short.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">2.8s</span><span class="meta-chip wer good">WER 0.12</span><span class="meta-chip sim good">SpkSim 0.75</span></div>
+      <div class="transcript">&ldquo;The birch canoes slid on the smooth planks.&rdquo;</div>
     </div>
 </div>
 <div class="row">
@@ -340,6 +377,14 @@ footer a:hover { text-decoration: underline; }
       <audio controls preload="none" src="tq_2bit/laura__medium.wav"></audio>
       <div class="meta"><span class="meta-chip dur">9.4s</span><span class="meta-chip wer good">WER 0.08</span><span class="meta-chip sim good">SpkSim 0.83</span></div>
       <div class="transcript">&ldquo;The birch canoe slid on the smooth links glue the sheet to the dark blue background. It's easy to tell the depths of a well.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="noproj_2bit/laura__medium.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">5.5s</span><span class="meta-chip wer mid">WER 0.52</span><span class="meta-chip sim good">SpkSim 0.76</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on smooth lanes. Glue the sheet to the dark pool.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="naive_2bit/laura__medium.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">8.0s</span><span class="meta-chip wer good">WER 0.04</span><span class="meta-chip sim good">SpkSim 0.80</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of the well.&rdquo;</div>
     </div>
 </div>
 <div class="row">
@@ -360,6 +405,14 @@ footer a:hover { text-decoration: underline; }
       <audio controls preload="none" src="tq_2bit/laura__long.wav"></audio>
       <div class="meta"><span class="meta-chip dur">15.6s</span><span class="meta-chip wer good">WER 0.25</span><span class="meta-chip sim mid">SpkSim 0.62</span></div>
       <div class="transcript">&ldquo;The birch canoe slid on the smooth planks. Glue the sheet to the dark blue background. It's easy to tell the depth of well. These days a chicken leg is a rare dish. Rice is often chur's.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="noproj_2bit/laura__long.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">12.4s</span><span class="meta-chip wer bad">WER 0.83</span><span class="meta-chip sim bad">SpkSim 0.45</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on the smooth planks.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="naive_2bit/laura__long.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">20.2s</span><span class="meta-chip wer mid">WER 0.50</span><span class="meta-chip sim mid">SpkSim 0.59</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on the smooth flanks and glued the sheet to the dark blue background. It's easy to tell the depth of a well. These days the chicken claire and a rifflech. Round four. The soap from Net Rancher is the simple chocolate color that's the flavor of an house.&rdquo;</div>
     </div>
 </div>
 <div class="row">
@@ -379,6 +432,14 @@ footer a:hover { text-decoration: underline; }
     </div>    <div class="cell">
       <audio controls preload="none" src="tq_2bit/gary__short.wav"></audio>
       <div class="meta"><span class="meta-chip dur">2.5s</span><span class="meta-chip wer good">WER 0.00</span><span class="meta-chip sim good">SpkSim 0.83</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on the smooth planks.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="noproj_2bit/gary__short.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">2.9s</span><span class="meta-chip wer good">WER 0.25</span><span class="meta-chip sim mid">SpkSim 0.68</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on the sets.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="naive_2bit/gary__short.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">2.5s</span><span class="meta-chip wer good">WER 0.00</span><span class="meta-chip sim good">SpkSim 0.79</span></div>
       <div class="transcript">&ldquo;The birch canoe slid on the smooth planks.&rdquo;</div>
     </div>
 </div>
@@ -400,6 +461,14 @@ footer a:hover { text-decoration: underline; }
       <audio controls preload="none" src="tq_2bit/gary__medium.wav"></audio>
       <div class="meta"><span class="meta-chip dur">11.7s</span><span class="meta-chip wer mid">WER 0.32</span><span class="meta-chip sim mid">SpkSim 0.55</span></div>
       <div class="transcript">&ldquo;The birch canoe slid on the smooth planks. Glue the sheet to the dark blue. Boke. Blue background. It's easy to tell.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="noproj_2bit/gary__medium.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">9.4s</span><span class="meta-chip wer bad">WER 0.84</span><span class="meta-chip sim bad">SpkSim 0.41</span></div>
+      <div class="transcript">&ldquo;The birch can slund. Hymes. Do is give to the six.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="naive_2bit/gary__medium.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">12.4s</span><span class="meta-chip wer mid">WER 0.32</span><span class="meta-chip sim bad">SpkSim 0.29</span></div>
+      <div class="transcript">&ldquo;The birch canoe, slid on smooth. Clinks, glue the sheet. To the dark blue background. It's easy to tell the truth of them. Oh well.&rdquo;</div>
     </div>
 </div>
 <div class="row">
@@ -420,6 +489,14 @@ footer a:hover { text-decoration: underline; }
       <audio controls preload="none" src="tq_2bit/gary__long.wav"></audio>
       <div class="meta"><span class="meta-chip dur">15.6s</span><span class="meta-chip wer bad">WER 0.69</span><span class="meta-chip sim mid">SpkSim 0.57</span></div>
       <div class="transcript">&ldquo;The birch canoe slid on the smooth planks, ghoul the sheet to the dark blue plus bull, now one stays a-germ. The acklin deserve this rude juice of terror.&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="noproj_2bit/gary__long.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">14.4s</span><span class="meta-chip wer bad">WER 0.88</span><span class="meta-chip sim mid">SpkSim 0.52</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on smooth look from... Kichun!&rdquo;</div>
+    </div>    <div class="cell">
+      <audio controls preload="none" src="naive_2bit/gary__long.wav"></audio>
+      <div class="meta"><span class="meta-chip dur">17.2s</span><span class="meta-chip wer good">WER 0.25</span><span class="meta-chip sim mid">SpkSim 0.62</span></div>
+      <div class="transcript">&ldquo;The birch canoe slid on the smooth blanks, glued the sheet to the dark blue background. It's easy to tell the depth of a well. These days the chicken leg is a rare dish. Rice is often served in roundness or ownness.&rdquo;</div>
     </div>
 </div>
 </div>

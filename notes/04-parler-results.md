@@ -23,6 +23,38 @@ no acronyms.
 | TurboQuant 3-bit | 0.12 | 0.02 | 0.71 | 2.62 | 3.0 GB |
 | TurboQuant 2-bit | **0.21** (21%) | 0.13 | 0.72 | 2.88 | 3.0 GB |
 
+### Ablation at 2-bit
+
+To isolate *what* makes TurboQuant work on TTS, we ran two 2-bit
+variants alongside the main sweep:
+
+| Config | Mean WER | Median WER | Mean spk-sim vs fp16 |
+|---|---:|---:|---:|
+| TurboQuant 2-bit (rotation + Beta codebook) | **0.21** | 0.13 | **0.72** |
+| No-projection 2-bit (Beta codebook only, no rotation) | **0.65** | 0.75 | 0.63 |
+| Naive 2-bit (per-token min-max uniform, no rotation, no Beta) | **0.20** | 0.13 | 0.68 |
+
+Two clean findings:
+
+1. **The random rotation is essential.** Skip it and WER jumps from
+   0.21 to **0.65** (3× worse) — the Beta codebook assumes
+   unit-sphere-rotated inputs, so it mis-matches the raw K/V
+   distribution and reconstruction collapses. The rotation is doing
+   real work, not decoration.
+
+2. **The Beta codebook does not dominate a well-tuned naive
+   baseline.** TurboQuant 2-bit (0.21 WER) and per-token min-max
+   uniform quantization (0.20 WER) are statistically indistinguishable
+   on this benchmark. TurboQuant wins by ~0.04 on speaker similarity,
+   but not on intelligibility. This is a refinement of the paper's
+   claim: on Llama-8B Part 1 showed TurboQuant 2-bit (PPL 6.13) beats
+   KIVI 2-bit (7.86) by a clear margin, so the codebook matters there.
+   On Parler-TTS at 2-bit, the codebook's specific optimality doesn't
+   give measurable intelligibility headroom over per-token min-max.
+   Plausible explanation: Parler's 880M decoder may have less
+   outlier-heavy K/V distributions than Llama-8B's attention, so
+   per-token adaptive scaling handles the range well enough.
+
 ![WER](../speech-tts-improvements/parler/results/plots/wer.png)
 ![Speaker similarity](../speech-tts-improvements/parler/results/plots/speaker_similarity.png)
 

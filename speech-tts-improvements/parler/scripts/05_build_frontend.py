@@ -27,6 +27,8 @@ CONFIGS = [
     ("tq_4bit", "TurboQuant 4-bit"),
     ("tq_3bit", "TurboQuant 3-bit"),
     ("tq_2bit", "TurboQuant 2-bit"),
+    ("noproj_2bit", "No-projection 2-bit"),
+    ("naive_2bit", "Naive min-max 2-bit"),
 ]
 VOICES_ORDER = ["jon", "laura", "gary"]
 TEXTS_ORDER = ["short", "medium", "long"]
@@ -214,12 +216,13 @@ header p {{
 .legend strong {{ color: var(--fg); font-weight: 600; }}
 .grid {{
   display: grid;
-  grid-template-columns: 260px repeat(4, 1fr);
+  grid-template-columns: 220px repeat(6, 1fr);
   gap: 1px;
   background: var(--border);
   border: 1px solid var(--border);
   border-radius: 12px;
   overflow: hidden;
+  font-size: 12px;
 }}
 .grid-header {{
   display: contents;
@@ -238,6 +241,8 @@ header p {{
 .grid > .header-cell:nth-child(3) {{ color: var(--q4); }}
 .grid > .header-cell:nth-child(4) {{ color: var(--q3); }}
 .grid > .header-cell:nth-child(5) {{ color: var(--q2); }}
+.grid > .header-cell:nth-child(6) {{ color: #ff7a7a; }}
+.grid > .header-cell:nth-child(7) {{ color: #c4b5fd; }}
 .row {{
   display: contents;
 }}

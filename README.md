@@ -118,11 +118,36 @@ uv run pytest language-model-improvements/tests/ -v
 
 The `notes/` directory contains the learning journey — written explanations of attention, KV caches, quantization, and the Johnson-Lindenstrauss lemma, plus pedagogical scripts that visualize random projection's dot-product preservation and outlier-flattening properties. These are the foundations that make the implementation make sense.
 
-## Part 2: Parler-TTS (in progress)
+## Part 2: Parler-TTS
 
-TurboQuant applies to any autoregressive transformer with a KV cache — not just text LLMs. Part 2 tests this on **Parler-TTS Mini v1** from HuggingFace, an 880M-param encoder-decoder TTS model whose decoder is a standard GPT-2-style autoregressive transformer.
+### Results
 
-### Pivot: VibeVoice → Parler-TTS (2026-04-18)
+Evaluated on **Parler-TTS Mini v1** (880M), 9 Harvard-sentence prompts × 3 voices, Whisper small.en WER.
+
+| Config | Mean WER | Median WER | Mean spk-sim vs fp16 |
+|---|---:|---:|---:|
+| fp16 baseline | **0.04** | 0.04 | — |
+| TurboQuant 4-bit | 0.06 | 0.06 | 0.72 |
+| TurboQuant 3-bit | 0.12 | 0.02 | 0.71 |
+| TurboQuant 2-bit | **0.21** | 0.13 | 0.72 |
+
+**Ablation at 2-bit** (what does TurboQuant's random projection specifically contribute?):
+
+| Config | Mean WER | Median WER | Mean spk-sim |
+|---|---:|---:|---:|
+| TurboQuant 2-bit (rotation + Beta codebook) | **0.21** | 0.13 | **0.72** |
+| No-projection 2-bit (Beta codebook only, no rotation) | **0.65** | 0.75 | 0.63 |
+| Naive min-max 2-bit (per-token uniform, no rotation, no Beta) | 0.20 | 0.13 | 0.68 |
+
+**Two findings from the ablation:**
+1. **The random projection is essential** — skipping it jumps WER from 0.21 to 0.65 (3× worse). The rotation is doing real work, not decoration.
+2. **The optimal codebook doesn't dominate a well-tuned naive baseline on TTS.** Per-token min-max uniform quantization ties TurboQuant on WER (0.20 vs 0.21) with slightly worse voice identity. This refines the paper's claim: on Llama-8B (Part 1) TurboQuant beats KIVI 2-bit by 1.7 PPL, but on Parler-TTS the Beta codebook's specific optimality doesn't show up in intelligibility numbers. The projection is the transferable insight; the codebook choice matters less.
+
+Full writeup: [`notes/04-parler-results.md`](notes/04-parler-results.md). Listen to all 54 WAVs (9 prompts × 6 configs) with metrics inline in [`speech-tts-improvements/parler/results/audio_comparison.html`](speech-tts-improvements/parler/results/audio_comparison.html) — open locally.
+
+### Setup history and context
+
+#### Pivot: VibeVoice → Parler-TTS (2026-04-18)
 
 > **What changed.** Part 2 originally targeted Microsoft's **VibeVoice-Realtime-0.5B**. After landing on it, we hit a hard blocker and switched to **Parler-TTS Mini v1**, which answers the same scientific question (*does TurboQuant generalize to autoregressive TTS?*) on a cleanly-maintainable code path.
 >
