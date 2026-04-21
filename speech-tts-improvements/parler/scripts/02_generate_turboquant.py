@@ -21,7 +21,7 @@ sys.path.insert(0, REPO_ROOT)
 sys.path.insert(0, os.path.join(REPO_ROOT, "speech-tts-improvements", "parler"))
 
 from parler_tts import ParlerTTSForConditionalGeneration
-from transformers import AutoTokenizer, set_seed
+from transformers import AutoTokenizer, set_seed, EncoderDecoderCache, DynamicCache
 from voices_and_texts import VOICES, TEXTS
 from language_model_improvements.handrolled_turboquant import HandrolledTurboQuantCache
 
@@ -72,7 +72,7 @@ def run_config(bits: int, label: str):
 
             # Fresh cache per generation — new random projection matrices
             # (fixed seed inside HandrolledTurboQuantCache for reproducibility)
-            cache = HandrolledTurboQuantCache(
+            inner_cache = HandrolledTurboQuantCache(
                 num_layers=num_layers,
                 num_kv_heads=num_kv_heads,
                 head_dim=head_dim,
@@ -82,6 +82,10 @@ def run_config(bits: int, label: str):
                 residual_length=128,
                 seed=42,
             )
+            # Parler's prepare_inputs_for_generation expects EncoderDecoderCache;
+            # without the wrap it dereferences an empty cache via legacy tuple
+            # indexing. Wrap explicitly so get_seq_length() is used instead.
+            cache = EncoderDecoderCache(inner_cache, DynamicCache())
 
             desc_ids = tokenizer(voice_desc, return_tensors="pt").input_ids.to(device)
             prompt_ids = tokenizer(text, return_tensors="pt").input_ids.to(device)
