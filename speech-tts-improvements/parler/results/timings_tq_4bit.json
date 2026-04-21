@@ -1,0 +1,62 @@
+{
+  "config": "tq_4bit",
+  "bits": 4,
+  "per_sample": {
+    "jon__short": {
+      "gen_time_sec": 86.69,
+      "audio_duration_sec": 29.849,
+      "rtf": 2.904,
+      "success": true
+    },
+    "jon__medium": {
+      "gen_time_sec": 87.266,
+      "audio_duration_sec": 29.849,
+      "rtf": 2.924,
+      "success": true
+    },
+    "jon__long": {
+      "gen_time_sec": 85.716,
+      "audio_duration_sec": 29.849,
+      "rtf": 2.872,
+      "success": true
+    },
+    "laura__short": {
+      "gen_time_sec": 84.7,
+      "audio_duration_sec": 17.415,
+      "rtf": 4.864,
+      "success": true
+    },
+    "laura__medium": {
+      "gen_time_sec": 68.472,
+      "audio_duration_sec": 23.812,
+      "rtf": 2.876,
+      "success": true
+    },
+    "laura__long": {
+      "gen_time_sec": 85.991,
+      "audio_duration_sec": 29.849,
+      "rtf": 2.881,
+      "success": true
+    },
+    "gary__short": {
+      "gen_time_sec": 59.665,
+      "audio_duration_sec": 20.956,
+      "rtf": 2.847,
+      "success": true
+    },
+    "gary__medium": {
+      "gen_time_sec": 85.482,
+      "audio_duration_sec": 29.849,
+      "rtf": 2.864,
+      "success": true
+    },
+    "gary__long": {
+      "gen_time_sec": 86.311,
+      "audio_duration_sec": 29.849,
+      "rtf": 2.892,
+      "success": true
+    }
+  },
+  "peak_gpu_bytes": 3583408128,
+  "peak_gpu_gb": 3.58
+}

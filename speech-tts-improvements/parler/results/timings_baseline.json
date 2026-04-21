@@ -1,0 +1,52 @@
+{
+  "config": "fp16_baseline",
+  "per_sample": {
+    "jon__short": {
+      "gen_time_sec": 43.362,
+      "audio_duration_sec": 28.804,
+      "rtf": 1.505
+    },
+    "jon__medium": {
+      "gen_time_sec": 43.191,
+      "audio_duration_sec": 29.849,
+      "rtf": 1.447
+    },
+    "jon__long": {
+      "gen_time_sec": 42.945,
+      "audio_duration_sec": 29.849,
+      "rtf": 1.439
+    },
+    "laura__short": {
+      "gen_time_sec": 28.776,
+      "audio_duration_sec": 20.039,
+      "rtf": 1.436
+    },
+    "laura__medium": {
+      "gen_time_sec": 43.446,
+      "audio_duration_sec": 29.849,
+      "rtf": 1.456
+    },
+    "laura__long": {
+      "gen_time_sec": 42.897,
+      "audio_duration_sec": 29.849,
+      "rtf": 1.437
+    },
+    "gary__short": {
+      "gen_time_sec": 43.149,
+      "audio_duration_sec": 29.849,
+      "rtf": 1.446
+    },
+    "gary__medium": {
+      "gen_time_sec": 43.058,
+      "audio_duration_sec": 29.849,
+      "rtf": 1.443
+    },
+    "gary__long": {
+      "gen_time_sec": 43.121,
+      "audio_duration_sec": 29.849,
+      "rtf": 1.445
+    }
+  },
+  "peak_gpu_bytes": 3578095104,
+  "peak_gpu_gb": 3.58
+}
