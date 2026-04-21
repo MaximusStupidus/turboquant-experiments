@@ -406,22 +406,26 @@ class NaiveQuantCache(DynamicCache):
         self._residual_v = [[] for _ in range(num_layers)]
 
     def _quantize_tensor(self, x: torch.Tensor) -> torch.Tensor:
-        """Per-channel uniform quantization. Returns the dequantized approximation.
+        """Per-token uniform quantization (KIVI's V strategy).
 
         x shape: (batch, n_heads, seq_len, head_dim)
 
-        For each (batch, head, channel), compute min/max across the seq_len
-        dim, map values to [0, num_levels-1], round, map back.
+        For each (batch, head, token) vector of head_dim values, compute
+        min/max across the head_dim dim, map to [0, num_levels-1] uniform
+        levels, round, map back.
+
+        Per-token (reduce over head_dim) rather than per-channel (reduce
+        over seq_len) is crucial: during autoregressive generation, only
+        one token overflows the residual buffer at a time, so per-channel
+        stats degenerate (min == max for a single token). Per-token stats
+        use the 64 head_dim values, which always gives a meaningful range.
         """
         x_f32 = x.float()
-        # Compute per-channel min/max (reduce over seq_len dim).
-        x_min = x_f32.amin(dim=2, keepdim=True)       # (b, h, 1, d)
-        x_max = x_f32.amax(dim=2, keepdim=True)       # (b, h, 1, d)
+        x_min = x_f32.amin(dim=-1, keepdim=True)       # (b, h, s, 1)
+        x_max = x_f32.amax(dim=-1, keepdim=True)       # (b, h, s, 1)
         scale = (x_max - x_min) / (self.num_levels - 1)
-        scale = torch.clamp(scale, min=1e-10)          # avoid div-by-zero
-        # Quantize: (x - min) / scale rounded to int, clipped to valid range.
+        scale = torch.clamp(scale, min=1e-10)
         q = torch.round((x_f32 - x_min) / scale).clamp(0, self.num_levels - 1)
-        # Dequantize.
         x_approx = q * scale + x_min
         return x_approx.to(x.dtype)
 
