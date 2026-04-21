@@ -2,252 +2,252 @@
   "baseline": {
     "jon__short": {
       "wer": {
-        "transcript": "Hello? This is a test of voice quality after Q's cache and...",
-        "wer": 0.25
+        "transcript": "Hello, this is a test of voice quality after cache compression.",
+        "wer": 0.0833
       }
     },
     "jon__medium": {
       "wer": {
-        "transcript": "Hello, this message is from Dr. Neuresh.",
-        "wer": 0.7778
+        "transcript": "Hello, this message is from Dr. Nersh, Jalua, Otsohu, and Muehl. We are testing voice quality after D.K. Cash on open source TurboQuint.",
+        "wer": 0.4074
       }
     },
     "jon__long": {
       "wer": {
-        "transcript": "Large language models store AU cache during text generation.",
-        "wer": 0.8511
+        "transcript": "Large language models store egg of cache during text generation. Cached key and value vectors from all previous tokens that the model reads back at each step to compute attention. At long context length, this cache can exceed the model weights in memory. TurboQuint compresses it.",
+        "wer": 0.1277
       }
     },
     "laura__short": {
       "wer": {
-        "transcript": "Hello, this is a test of voice quality after GiveCache compression.",
-        "wer": 0.1667
+        "transcript": "Hello, this is a test of voice quality after cache compression.",
+        "wer": 0.0833
       }
     },
     "laura__medium": {
       "wer": {
-        "transcript": "Hello, this message is from Dr. Nersh, Julela, Enkidawan, and Nusahu. And Mookul, we are testing voice quality after the cache compression on open source Turbo.",
-        "wer": 0.3333
+        "transcript": "Hello, this message is from Dr. Nourish to Layla, Anki Damion, in the cool weird testing voice. Quality after cache compression on open source, TurboQuent.",
+        "wer": 0.5185
       }
     },
     "laura__long": {
       "wer": {
-        "transcript": "Large language models store a key during text generation, cached key and value vectors from all previous tokens that the model reads back at each step to compute attention at long context, length.",
-        "wer": 0.4043
+        "transcript": "Large language models store a HIO cache during text generation, cached key, and value vectors from all previous tokens that the model reads back at each step to compute attention. At long context lengths this cache can exceed the model weights in memory, Turboquant compresses it.",
+        "wer": 0.1277
       }
     },
     "gary__short": {
       "wer": {
-        "transcript": "Hello, this is a test of voice quality after backhash compression.",
+        "transcript": "Hello, this is a test of voice quality after Grakash compression.",
         "wer": 0.1667
       }
     },
     "gary__medium": {
       "wer": {
-        "transcript": "Hello.",
-        "wer": 1.0
+        "transcript": "Hello, this message is from Dr. Nariesh, Jalela, [redacted] Dawan, Anay Saho, and [redacted]. We are testing voice quality after cache compression on open source...",
+        "wer": 0.2963
       }
     },
     "gary__long": {
       "wer": {
-        "transcript": "Large Language Model Store of the cache during text generation.",
-        "wer": 0.8723
+        "transcript": "Large language models store a for-cache during text generation, cache key and value vectors from all previous tokens that the model reads back at each step to compute attention. At long context lengths, this cache can exceed the model weights in memory. Turboquent compresses it.",
+        "wer": 0.1277
       }
     }
   },
   "tq_4bit": {
     "jon__short": {
       "wer": {
-        "transcript": "Hello, this is a test of voice quality of Jugber cache compression.",
-        "wer": 0.1667
+        "transcript": "Hello, this is a test of voice quality after it computes.",
+        "wer": 0.25
       },
-      "speaker_similarity_vs_baseline": 0.7682
+      "speaker_similarity_vs_baseline": 0.7009
     },
     "jon__medium": {
       "wer": {
-        "transcript": "Hello, this message is from Dr. [redacted] Jullila and Kitawan Anuksahu and [redacted]. We are testing voice quality after caching on open source TurboQuan.",
-        "wer": 0.3333
+        "transcript": "Hello, this message is from Dr. Narish. Ojilla, aankit, du'an, an'yoo, an'u kul. We are testing voice quality after WolfCache impression on open source.",
+        "wer": 0.4815
       },
-      "speaker_similarity_vs_baseline": 0.5419
+      "speaker_similarity_vs_baseline": 0.8123
     },
     "jon__long": {
       "wer": {
-        "transcript": "Large language models store evo-cache during text generation. Cached key and value vectors from all previous tokens the model reads back at each step to compute attention. At long context lengths this cache can exceed the model weights in memory. TurboQuant compresses it.",
-        "wer": 0.1489
+        "transcript": "Large language models store a kivash during text generation, cache key and value vectors from all previous tokens that the model reads back at each step to compute attention. At long context lengths this cache can exceed the model weights in Emory. Turboquen compresses it.",
+        "wer": 0.1702
       },
-      "speaker_similarity_vs_baseline": 0.3897
+      "speaker_similarity_vs_baseline": 0.8133
     },
     "laura__short": {
       "wer": {
-        "transcript": "Hello, this is a test to voice quality after cache compression.",
+        "transcript": "Hello, this is a test of voice quality after Kupi Kesh compression.",
         "wer": 0.1667
       },
-      "speaker_similarity_vs_baseline": 0.8348
+      "speaker_similarity_vs_baseline": 0.7458
     },
     "laura__medium": {
       "wer": {
-        "transcript": "Hello, this message is from Dr. Nourish Jalayla Enkid Go on, unable we are testing voice, quality after cache compression on open source Terble, Quinn",
-        "wer": 0.4444
+        "transcript": "Hello, this message is from Dr. [redacted] Jalayla, Anki, Dawan Sarvu and Mookul. We are testing voice quality after clock late. Insertion on open source, Turbo.",
+        "wer": 0.4074
       },
-      "speaker_similarity_vs_baseline": 0.7813
+      "speaker_similarity_vs_baseline": 0.7535
     },
     "laura__long": {
       "wer": {
-        "transcript": "Large language models store of a cache during text generation, cached key and value vectors from all previous tokens that the model reads back at each step to compute attention. At long context, lengths, this cache can exceed the model weights in memory.",
-        "wer": 0.1702
+        "transcript": "Large language model story carry cache during text generation, cached key and value vectors from all previous tokens that the model reads back at each step to compute attention. At long context, lengths this cache can exceed the model weights in memory. Turbo. Ground compresses.",
+        "wer": 0.234
       },
-      "speaker_similarity_vs_baseline": 0.8412
+      "speaker_similarity_vs_baseline": 0.8254
     },
     "gary__short": {
       "wer": {
-        "transcript": "Hello, this is a test of voice quality. After Cosh compression.",
-        "wer": 0.25
+        "transcript": "Hello, this is a test of voice quality after both cache compression.",
+        "wer": 0.0833
       },
-      "speaker_similarity_vs_baseline": 0.802
+      "speaker_similarity_vs_baseline": 0.8609
     },
     "gary__medium": {
       "wer": {
-        "transcript": "Hello. This message is from Dr. Nerish Jalala, [redacted] Dolan. I know we are testing voice quality after 2K compression.",
+        "transcript": "Hello, this message is from Dr. Nourish. Jillianna [redacted] Dawn, and there's an... ...ye casting voice. Quality is after K. Cache compression on open...",
         "wer": 0.5556
       },
-      "speaker_similarity_vs_baseline": 0.0967
+      "speaker_similarity_vs_baseline": 0.5677
     },
     "gary__long": {
       "wer": {
-        "transcript": "Large language model store evo, cache during text generation.",
-        "wer": 0.8723
+        "transcript": "Large language models store a cache during text generation, cached key and value vectors from all previous tokens that the model reads back at each step to compute attention. At long context lengths, this cache can exceed the model weights in memory.",
+        "wer": 0.1277
       },
-      "speaker_similarity_vs_baseline": 0.699
+      "speaker_similarity_vs_baseline": 0.7865
     }
   },
   "tq_3bit": {
     "jon__short": {
       "wer": {
-        "transcript": "Hello, this is the test of voice quality after PICACH compression.",
-        "wer": 0.25
+        "transcript": "Hello, this is a test of voice quality after Dukas cache compression.",
+        "wer": 0.0833
       },
-      "speaker_similarity_vs_baseline": 0.7435
+      "speaker_similarity_vs_baseline": 0.6987
     },
     "jon__medium": {
       "wer": {
-        "transcript": "Hello, this message is from...",
-        "wer": 0.8519
+        "transcript": "Hello, this message is from Dr. Rish, Jilela, [redacted], [redacted], Anubhay and Mughal. We are testing voice quality after cache compression on open source. TurboKwan.",
+        "wer": 0.3333
       },
-      "speaker_similarity_vs_baseline": 0.734
+      "speaker_similarity_vs_baseline": 0.7896
     },
     "jon__long": {
       "wer": {
-        "transcript": "Large language models store a VOO cache during text generation, cached key and value vectors from all previous tokens that the model reads back at each step to compute attention. In long contexts, lengths this cache can exceed the model weights in memory.",
-        "wer": 0.1915
+        "transcript": "Large language models store A-Bocache during text generation, cached key and value vectors, from all previous tokens that the model reads back at each step to compute attention.",
+        "wer": 0.4681
       },
-      "speaker_similarity_vs_baseline": 0.4129
+      "speaker_similarity_vs_baseline": 0.834
     },
     "laura__short": {
       "wer": {
-        "transcript": "Hello, this is a test to voice quality after refresh.",
-        "wer": 0.3333
+        "transcript": "Hello, this is a test of voice quality after have cache compression.",
+        "wer": 0.0833
       },
-      "speaker_similarity_vs_baseline": 0.7867
+      "speaker_similarity_vs_baseline": 0.7551
     },
     "laura__medium": {
       "wer": {
-        "transcript": "Hello, this message is from Dr. Nair. Nairish. Jhilaila and [redacted], we are testing voice quality after curb cache compression on open source Turbo.",
-        "wer": 0.3333
+        "transcript": "Hello, this message is from Dr. Nar Shillala Angukul. We are testing voice. Quality after cache compression on open source. Turbo.",
+        "wer": 0.4444
       },
-      "speaker_similarity_vs_baseline": 0.7404
+      "speaker_similarity_vs_baseline": 0.6783
     },
     "laura__long": {
       "wer": {
-        "transcript": "Large language models store allow cache during text generation. Cached key and value vectors from all previous tokens that the model reads back at each step to compute attention. At long context, length, this cache can exceed the model weights in memory. Tertiquan compresses.",
-        "wer": 0.1915
+        "transcript": "Large language models store A, meaning cached during text generation, cached key, and value vectors from all previous tokens that the model reads back at each step to compute attention.",
+        "wer": 0.4681
       },
-      "speaker_similarity_vs_baseline": 0.8545
+      "speaker_similarity_vs_baseline": 0.8289
     },
     "gary__short": {
       "wer": {
-        "transcript": "Hello, this is a test of voice quality after compression.",
+        "transcript": "Hello, this is a test of voice quality after 4-cash compression.",
         "wer": 0.1667
       },
-      "speaker_similarity_vs_baseline": 0.7795
+      "speaker_similarity_vs_baseline": 0.6793
     },
     "gary__medium": {
       "wer": {
-        "transcript": "Hello. This message is from Dr. Narish Jalila. Angkita one. Anisahu. In Mukol we are testing voice qua-",
-        "wer": 0.6667
+        "transcript": "Hello, this message is from Dr. Nair, Jalayla [redacted]. We are testing voice quality after current cache compression on open source TurboCrant.",
+        "wer": 0.3333
       },
-      "speaker_similarity_vs_baseline": 0.1654
+      "speaker_similarity_vs_baseline": 0.5052
     },
     "gary__long": {
       "wer": {
-        "transcript": "Large language models store a cache during text generation cached key and value vectors from all previous tokens that the model reads back at each. Set to compute attention.",
-        "wer": 0.4255
+        "transcript": "Large language models store of A, cache during text generation, cache key and value vectors from all previous tokens that the model reads back at each step to compute attention.",
+        "wer": 0.4468
       },
-      "speaker_similarity_vs_baseline": 0.4819
+      "speaker_similarity_vs_baseline": 0.7584
     }
   },
   "tq_2bit": {
     "jon__short": {
       "wer": {
-        "transcript": "Hello, this is a test of voice quality after recursion.",
+        "transcript": "Hello, this is a test of voice quality after Froon.",
         "wer": 0.25
       },
-      "speaker_similarity_vs_baseline": 0.6675
+      "speaker_similarity_vs_baseline": 0.6461
     },
     "jon__medium": {
       "wer": {
-        "transcript": "Hello, this message is from Dr. Nierstjila Enkitawan.",
-        "wer": 0.7778
+        "transcript": "Hello, this message is from Dr. Narish, Jalila, and Kedawan Anukul. We are testing voice quality after... Question on open source.",
+        "wer": 0.5185
       },
-      "speaker_similarity_vs_baseline": 0.75
+      "speaker_similarity_vs_baseline": 0.6345
     },
     "jon__long": {
       "wer": {
-        "transcript": "Large language models store a new cache during text generation. Cache t and value vectors from all previous tokens that the model reads bad.",
-        "wer": 0.5957
+        "transcript": "Large language models store a cache during test generation cache key and value vectors from all previous tokens that the model reads back at each step to compute attention. At long context, lengths this cache can exceed the model weights in",
+        "wer": 0.2128
       },
-      "speaker_similarity_vs_baseline": 0.4835
+      "speaker_similarity_vs_baseline": 0.8204
     },
     "laura__short": {
       "wer": {
-        "transcript": "Hello, this is a test of voice quality after coverage.",
-        "wer": 0.25
+        "transcript": "Hello, this is a test of voice quality after Kekeshe compression.",
+        "wer": 0.1667
       },
-      "speaker_similarity_vs_baseline": 0.7641
+      "speaker_similarity_vs_baseline": 0.7469
     },
     "laura__medium": {
       "wer": {
-        "transcript": "Hello, this message is from Dr. Neresh, Jalala and Futa.",
-        "wer": 0.7407
+        "transcript": "Hello, this message is from Dr. Nair. Jelilil Anki, Dabon Angil Ak. Hoei Anakash, Kuyet Sta. Anin kol Avechi Gattani.",
+        "wer": 0.7778
       },
-      "speaker_similarity_vs_baseline": 0.6294
+      "speaker_similarity_vs_baseline": 0.542
     },
     "laura__long": {
       "wer": {
-        "transcript": "Large language models Storag have cache-during-text generation, cache key and value vectors from all previous tokens that the model reads back at each step to compute a TENCH at long contexts.",
-        "wer": 0.5319
+        "transcript": "Large language models store Apple Cash during taxed generation, cached key and value vectors from all previous tokens, that the model reads back at each step to compute attention. At long contexts, lengths, this cache can exceed the model weights and memory.",
+        "wer": 0.2553
       },
-      "speaker_similarity_vs_baseline": 0.8438
+      "speaker_similarity_vs_baseline": 0.664
     },
     "gary__short": {
       "wer": {
-        "transcript": "Hello, this is a test of voice quality after GifKesh compression.",
-        "wer": 0.1667
+        "transcript": "Hello! This is the test of Miesquality after... Ookash compression!",
+        "wer": 0.6667
       },
-      "speaker_similarity_vs_baseline": 0.7625
+      "speaker_similarity_vs_baseline": 0.6431
     },
     "gary__medium": {
       "wer": {
-        "transcript": "Hello, this is your Vista.",
-        "wer": 0.8889
+        "transcript": "Hello, this message is from Zoser. Not so high. Whoa, whoa.",
+        "wer": 0.8148
       },
-      "speaker_similarity_vs_baseline": 0.479
+      "speaker_similarity_vs_baseline": 0.4183
     },
     "gary__long": {
       "wer": {
-        "transcript": "Large language models store a cache during text generation.",
-        "wer": 0.8298
+        "transcript": "Large language models store a h during text generation, cache key and value vectors from all previous tokens that the model reads back at each step to compute attention. At long context length,",
+        "wer": 0.383
       },
-      "speaker_similarity_vs_baseline": 0.6776
+      "speaker_similarity_vs_baseline": 0.7219
     }
   }
 }

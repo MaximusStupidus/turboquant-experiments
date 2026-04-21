@@ -3,60 +3,60 @@
   "bits": 3,
   "per_sample": {
     "jon__short": {
-      "gen_time_sec": 10.407,
-      "audio_duration_sec": 3.936,
-      "rtf": 2.644,
+      "gen_time_sec": 9.148,
+      "audio_duration_sec": 3.518,
+      "rtf": 2.6,
       "success": true
     },
     "jon__medium": {
-      "gen_time_sec": 40.603,
-      "audio_duration_sec": 13.827,
-      "rtf": 2.936,
+      "gen_time_sec": 31.523,
+      "audio_duration_sec": 10.565,
+      "rtf": 2.984,
       "success": true
     },
     "jon__long": {
-      "gen_time_sec": 57.658,
-      "audio_duration_sec": 19.598,
-      "rtf": 2.942,
+      "gen_time_sec": 34.132,
+      "audio_duration_sec": 11.505,
+      "rtf": 2.967,
       "success": true
     },
     "laura__short": {
-      "gen_time_sec": 10.009,
-      "audio_duration_sec": 3.843,
-      "rtf": 2.604,
+      "gen_time_sec": 11.027,
+      "audio_duration_sec": 4.122,
+      "rtf": 2.676,
       "success": true
     },
     "laura__medium": {
-      "gen_time_sec": 37.965,
-      "audio_duration_sec": 12.887,
-      "rtf": 2.946,
+      "gen_time_sec": 36.727,
+      "audio_duration_sec": 12.388,
+      "rtf": 2.965,
       "success": true
     },
     "laura__long": {
-      "gen_time_sec": 56.574,
-      "audio_duration_sec": 19.006,
-      "rtf": 2.977,
+      "gen_time_sec": 34.83,
+      "audio_duration_sec": 11.505,
+      "rtf": 3.027,
       "success": true
     },
     "gary__short": {
-      "gen_time_sec": 9.523,
-      "audio_duration_sec": 3.657,
-      "rtf": 2.604,
+      "gen_time_sec": 10.537,
+      "audio_duration_sec": 3.947,
+      "rtf": 2.669,
       "success": true
     },
     "gary__medium": {
-      "gen_time_sec": 40.339,
-      "audio_duration_sec": 13.827,
-      "rtf": 2.917,
+      "gen_time_sec": 33.229,
+      "audio_duration_sec": 11.134,
+      "rtf": 2.984,
       "success": true
     },
     "gary__long": {
-      "gen_time_sec": 60.614,
-      "audio_duration_sec": 20.376,
-      "rtf": 2.975,
+      "gen_time_sec": 37.39,
+      "audio_duration_sec": 12.399,
+      "rtf": 3.015,
       "success": true
     }
   },
-  "peak_gpu_bytes": 3015627776,
-  "peak_gpu_gb": 3.02
+  "peak_gpu_bytes": 2539667968,
+  "peak_gpu_gb": 2.54
 }
