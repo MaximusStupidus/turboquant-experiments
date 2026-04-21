@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.join(REPO_ROOT, "speech-tts-improvements", "parler"))
 
 from parler_tts import ParlerTTSForConditionalGeneration
 from transformers import AutoTokenizer, set_seed
-from voices_and_texts import VOICES, TEXTS
+from voices_and_texts import VOICES, TEXTS, MAX_NEW_TOKENS
 
 OUT_DIR = os.path.join(REPO_ROOT, "speech-tts-improvements/parler/results/baseline")
 os.makedirs(OUT_DIR, exist_ok=True)
@@ -75,7 +75,9 @@ for voice_name, voice_desc in VOICES.items():
             audio = model.generate(
                 input_ids=desc_ids,
                 prompt_input_ids=prompt_ids,
-                do_sample=False,
+                do_sample=True,
+                temperature=0.7,
+                max_new_tokens=MAX_NEW_TOKENS[text_name],
             )
         if device == "cuda:0":
             torch.cuda.synchronize()

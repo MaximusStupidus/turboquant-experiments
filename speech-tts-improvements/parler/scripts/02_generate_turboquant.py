@@ -22,7 +22,7 @@ sys.path.insert(0, os.path.join(REPO_ROOT, "speech-tts-improvements", "parler"))
 
 from parler_tts import ParlerTTSForConditionalGeneration
 from transformers import AutoTokenizer, set_seed, EncoderDecoderCache, DynamicCache
-from voices_and_texts import VOICES, TEXTS
+from voices_and_texts import VOICES, TEXTS, MAX_NEW_TOKENS
 from language_model_improvements.handrolled_turboquant import HandrolledTurboQuantCache
 
 RESULTS_DIR = os.path.join(REPO_ROOT, "speech-tts-improvements/parler/results")
@@ -98,7 +98,9 @@ def run_config(bits: int, label: str):
                         input_ids=desc_ids,
                         prompt_input_ids=prompt_ids,
                         past_key_values=cache,
-                        do_sample=False,
+                        do_sample=True,
+                        temperature=0.7,
+                        max_new_tokens=MAX_NEW_TOKENS[text_name],
                     )
                 torch.cuda.synchronize()
                 gen_time = time.time() - t_gen
