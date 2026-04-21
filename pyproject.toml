@@ -1,11 +1,11 @@
 [project]
 name = "turboquant-experiments"
 version = "0.1.0"
-description = "Comparative benchmarks of TurboQuant on Llama-3.1-8B and VibeVoice"
+description = "Comparative benchmarks of TurboQuant on Llama-3.1-8B and Parler-TTS Mini v1"
 requires-python = ">=3.11"
 dependencies = [
     "torch>=2.4",
-    "transformers>=4.51,<4.55",  # VibeVoice requires qwen2.tokenization_qwen2_fast (removed in 4.55+)
+    "transformers>=4.51,<4.55",
     "accelerate>=0.34",
     "numpy>=2.0",
     "matplotlib>=3.9",
@@ -13,11 +13,27 @@ dependencies = [
     "datasets>=3.0",
     "turboquant>=0.2.0",
     "quanto>=0.2.0",
+    "soundfile>=0.12",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0",
+]
+# Part 2 (Parler-TTS) extras. Parler pins transformers==4.46.1 and
+# numpy<2, which conflict with the core deps above — install these
+# into a SEPARATE venv (see speech-tts-improvements/parler/README.md).
+part2 = [
+    "soundfile>=0.12",
+]
+# CPU-side metrics for Part 2 audio quality (run on laptop after
+# syncing WAVs from the GPU pod).
+part2-metrics = [
+    "soundfile>=0.12",
+    "openai-whisper>=20231117",
+    "jiwer>=3.0",
+    "librosa>=0.10",
+    "speechbrain>=0.5",
 ]
 
 [tool.pytest.ini_options]
