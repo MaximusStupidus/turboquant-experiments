@@ -23,12 +23,12 @@ sys.path.insert(0, os.path.join(REPO_ROOT, "speech-tts-improvements", "parler"))
 from voices_and_texts import VOICES, TEXTS  # noqa: E402
 
 CONFIGS = [
-    ("baseline", "fp16 baseline"),
-    ("tq_4bit", "TurboQuant 4-bit"),
-    ("tq_3bit", "TurboQuant 3-bit"),
-    ("tq_2bit", "TurboQuant 2-bit"),
-    ("noproj_2bit", "No-projection 2-bit"),
-    ("naive_2bit", "Naive min-max 2-bit"),
+    ("baseline", "fp16 baseline", "reference · what clean speech sounds like"),
+    ("tq_4bit", "TurboQuant 4-bit", "should sound ≈ identical to baseline"),
+    ("tq_3bit", "TurboQuant 3-bit", "subtle artifacts on long clips"),
+    ("tq_2bit", "TurboQuant 2-bit", "audible degradation on long clips"),
+    ("noproj_2bit", "No-projection 2-bit", "ablation · rotation removed → severely broken"),
+    ("naive_2bit", "Naive min-max 2-bit", "ablation · no rotation, no Beta codebook · ~same WER as TQ 2-bit, slightly different voice"),
 ]
 VOICES_ORDER = ["jon", "laura", "gary"]
 TEXTS_ORDER = ["short", "medium", "long"]
@@ -84,7 +84,7 @@ def main() -> None:
 
     # Per-config means for the summary table
     summary_rows = []
-    for cfg, label in CONFIGS:
+    for cfg, label, _ in CONFIGS:
         wers = [
             v["wer"]["wer"]
             for v in metrics.get(cfg, {}).values()
@@ -113,10 +113,14 @@ def main() -> None:
                 f'<div class="reference">&ldquo;{ref_text}&rdquo;</div>'
                 "</div>"
             )
-            cells = "".join(cell_html(metrics, cfg, voice, text_name) for cfg, _ in CONFIGS)
+            cells = "".join(cell_html(metrics, cfg, voice, text_name) for cfg, _, _ in CONFIGS)
             rows_html.append(f'<div class="row">\n  {row_label}\n{cells}\n</div>')
 
-    header_html = "\n".join(f'  <div class="header-cell">{label}</div>' for _, label in CONFIGS)
+    header_html = "\n".join(
+        f'  <div class="header-cell"><div class="hc-title">{label}</div>'
+        f'<div class="hc-expected">{expected}</div></div>'
+        for _, label, expected in CONFIGS
+    )
 
     html = _HTML_TEMPLATE.format(
         summary_rows="".join(summary_rows),
@@ -236,6 +240,15 @@ header p {{
   color: var(--fg);
   background: #181c22;
   font-size: 13px;
+}}
+.header-cell .hc-title {{ font-size: 13px; font-weight: 600; }}
+.header-cell .hc-expected {{
+  font-size: 11px;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--fg-dim);
+  margin-top: 4px;
+  line-height: 1.4;
 }}
 .grid > .header-cell:nth-child(2) {{ color: var(--baseline); }}
 .grid > .header-cell:nth-child(3) {{ color: var(--q4); }}
@@ -368,6 +381,16 @@ footer a:hover {{ text-decoration: underline; }}
       each row's voice label is the exact prompt fed to Parler; the
       italicised line under each audio cell is Whisper's transcript of
       the generated audio.
+      <br><br>
+      <strong>What to listen for.</strong> Differences are subtle on
+      short prompts because the 128-token residual buffer keeps the
+      first ~1.5&nbsp;s of every clip at fp16 regardless of bit level.
+      The clearest A/B is on <em>long</em> prompts:
+      <code>gary__long</code> at 2-bit is visibly broken
+      (&ldquo;ghoul the sheet...rude juice of terror&rdquo;);
+      <code>laura__long</code> at 3-bit shows gradual drift.
+      <code>noproj_2bit</code> is the ablation that proves the rotation
+      matters &mdash; compare any long clip there to TurboQuant 2-bit.
     </div>
   </div>
 </header>
