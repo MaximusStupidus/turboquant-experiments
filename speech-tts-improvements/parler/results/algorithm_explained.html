@@ -378,11 +378,12 @@ pre {
 <section id="outliers">
   <h2>1. Why naive quantization hurts</h2>
   <p class="lead">
-    A transformer's K/V cache has <em>outlier channels</em> &mdash; a
-    few dimensions with far larger values than the rest. When you
-    uniformly quantize across the range of each channel, almost all
-    the bits get spent on the outliers, and the "normal" values
-    collapse into a few coarse buckets.
+    A transformer's K/V cache has wildly varying per-channel ranges
+    &mdash; a few dimensions are much larger than the rest. When you
+    pick a uniform quantization grid spanning each channel's range,
+    most bits get spent on the largest channels' range, and the
+    "normal" values in other channels collapse into a few coarse
+    buckets. The grid is mismatched to the distribution.
   </p>
   <div class="panel">
     <canvas id="outlierCanvas" width="900" height="360"></canvas>
@@ -394,18 +395,32 @@ pre {
       classic outlier pattern. At 2 bits (4 levels), their quantization
       step covers a huge gap; fine-grained information in the other 14
       channels is lost. This is the problem TurboQuant solves.
+      <br><br>
+      <em>Note:</em> this is the demo's simulated data, picked to make
+      the range disparity visible. The paper's framing is subtler:
+      it's not just "remove outliers", it's that the random rotation
+      concentrates rotated coordinates into a
+      Beta((d&minus;1)/2,&nbsp;(d&minus;1)/2) distribution, which then
+      enables a provably optimal per-coordinate scalar quantizer.
     </p>
   </div>
 </section>
 
 <section id="rotate">
-  <h2>2. Random rotation flattens the distribution</h2>
+  <h2>2. The rotation fix</h2>
   <p class="lead">
     Multiply the same data by a random orthogonal matrix R
     (generated once, same for all vectors). Because R preserves dot
     products, attention math works the same on rotated K,V &mdash; the
-    model doesn't notice. But the per-channel statistics change
-    dramatically: outlier energy gets spread evenly across dimensions.
+    model doesn't notice. But the distribution of rotated coordinates
+    becomes predictable: for unit vectors in <em>d</em> dimensions, each
+    coordinate after rotation follows a
+    Beta((d&minus;1)/2,&nbsp;(d&minus;1)/2) distribution on [&minus;1,&nbsp;1]
+    &mdash; concentrated near zero, with a shape that depends only on
+    <em>d</em>, not on the input. That concentration is what lets us
+    use an optimal <em>per-coordinate</em> scalar quantizer designed
+    once for the Beta shape, instead of re-fitting a grid to each
+    channel's range.
   </p>
   <div class="panel">
     <canvas id="rotateCanvas" width="900" height="360"></canvas>
@@ -478,11 +493,24 @@ pre {
     </div>
     <p class="note">
       This matches what we see in the real experiments. On
-      Llama-3.1-8B at 2-bit, TurboQuant scores PPL 6.13 vs KIVI's
-      naive 2-bit at 7.86. On Parler-TTS, skipping the rotation
-      jumps WER from 0.21 to 0.65. The rotation is doing the heavy
-      lifting.
+      Llama-3.1-8B at 2-bit, TurboQuant scores PPL 6.13 vs naive
+      per-group int-2 quantization (optimum-quanto) at 7.86. On
+      Parler-TTS, skipping the rotation jumps WER from 0.21 to 0.65.
+      The rotation is doing the heavy lifting.
     </p>
+  </div>
+  <div class="note" style="margin-top: 18px; border-left: 3px solid #7aa2ff; padding: 12px 16px; background: rgba(122, 162, 255, 0.04);">
+    <strong>A subtler finding on audio models.</strong> On Llama-3.1-8B
+    (Part 1 of this project), the full TurboQuant pipeline beats simple
+    per-group int-2 quantization by ~1.7 PPL &mdash; both the rotation and
+    the Beta-optimal codebook contribute. On Parler-TTS, the rotation
+    is still essential (skip it and WER jumps from 0.21 to 0.65), but
+    the Beta-optimal codebook specifically does NOT beat a simple
+    per-token adaptive min-max quantizer (0.21 vs 0.20 WER). The
+    rotation is the transferable insight; the codebook's mathematical
+    optimality depends on how outlier-heavy the model's K/V
+    distributions are. &quot;Optimal&quot; is always
+    optimal-for-a-distribution.
   </div>
 </section>
 
