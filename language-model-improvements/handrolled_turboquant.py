@@ -157,13 +157,15 @@ class HandrolledTurboQuantCache(DynamicCache):
         self.num_levels = 2 ** bits  # e.g., 16 for 4-bit, 4 for 2-bit
         self.num_layers = num_layers
         self.head_dim = head_dim
-        # residual_length = 128 default, carried from the TurboQuant paper
-        # and KIVI's setup. Empirically on Llama-8B at 2-bit: 0 → 32 → 128
-        # moved PPL 9.33 → ~7 → 6.07 (see notes/issue-log.md). Gains
-        # flatten past 128 because attention weight mass on tokens older
-        # than ~100 is already small. Not swept on Parler-TTS; 128 is a
-        # conservative default that keeps short clips (~3 s ≈ ~260 audio
-        # tokens) half-exact and long clips mostly quantized.
+        # residual_length = 128. The "keep the most-recent N tokens at full
+        # precision" idea predates TurboQuant: KIVI (Liu et al., ICML 2024)
+        # introduced a per-group streaming residual buffer for its quantized
+        # cache, and StreamingLLM (Xiao et al., ICLR 2024) earlier established
+        # that recent tokens carry disproportionate attention mass. Our
+        # implementation borrows this pattern; it is NOT part of the TurboQuant
+        # paper itself. Empirically on Llama-8B at 2-bit: sweeping 0 → 32 → 128
+        # moved PPL 9.33 → ~7 → 6.07 (see notes/issue-log.md). 128 stays the
+        # default here; unswept on Parler-TTS.
         self.residual_length = residual_length
         # Ablation flag: if False, skip the random-rotation step and
         # quantize the unit-normalized (but un-rotated) vectors directly

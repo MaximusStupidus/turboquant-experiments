@@ -2,7 +2,7 @@
 
 The autoregressive eval results are in these files:
 - baseline_autoreg.json (fp16, autoregressive eval)
-- kivi_4bit.json, kivi_2bit.json
+- quanto_int4.json, quanto_int2.json
 - turboquant_4bit.json, turboquant_3bit.json, turboquant_2bit.json
 - handrolled_4bit.json, handrolled_2bit.json
 
@@ -16,8 +16,8 @@ RESULTS_DIR = "language-model-improvements/results"
 # The configs we want in the final comparison, in display order
 CONFIGS = [
     ("fp16 (baseline)",  "baseline_autoreg.json"),
-    ("KIVI 4-bit",       "kivi_4bit.json"),
-    ("KIVI 2-bit",       "kivi_2bit.json"),
+    ("quanto int-4",     "quanto_int4.json"),
+    ("quanto int-2",     "quanto_int2.json"),
     ("TurboQuant 4-bit", "turboquant_4bit.json"),
     ("TurboQuant 3-bit", "turboquant_3bit.json"),
     ("TurboQuant 2-bit", "turboquant_2bit.json"),

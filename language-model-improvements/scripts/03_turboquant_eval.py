@@ -1,11 +1,11 @@
-"""Phase 3: evaluate TurboQuant and KIVI KV-cache quantization on Llama-3.1-8B.
+"""Phase 3: evaluate TurboQuant and quanto int-Nbit KV-cache quantization on Llama-3.1-8B.
 
 Runs the FROZEN eval harness (same perplexity/throughput functions from
 eval_core.py, identical to what produced baseline.json) with different cache
 objects:
 
-1. KIVI 4-bit  — HF QuantizedCache, naive per-channel quantization
-2. KIVI 2-bit  — same, more aggressive
+1. quanto int-4  — HF QuantizedCache with backend="quanto" (optimum-quanto)
+2. quanto int-2  — same, more aggressive
 3. TurboQuant key=4, value=4 — random projection + quantization
 4. TurboQuant key=4, value=2 — asymmetric (V compressed more)
 5. TurboQuant key=2, value=2 — most aggressive
@@ -51,11 +51,13 @@ from language_model_improvements.kv_utils import kv_cache_bytes
 # This is the ONLY thing that changes between configs — the measurement
 # code is identical.
 
-def make_kivi_factory(model_config, nbits):
-    """Factory for HF's built-in QuantizedCache (KIVI-style).
+def make_quanto_factory(model_config, nbits):
+    """Factory for HF's built-in QuantizedCache with the quanto backend.
 
-    KIVI does naive per-channel linear quantization — no rotation or
-    projection. This is our "naive baseline" that TurboQuant should beat.
+    This delegates to optimum-quanto (HuggingFace's general-purpose int
+    quantization library) — per-group symmetric integer quantization via
+    the quanto backend. It is NOT the KIVI paper's algorithm; it's our
+    "off-the-shelf naive baseline" that TurboQuant should beat.
     """
     def factory():
         from transformers import QuantizedCache
@@ -101,14 +103,14 @@ def get_configs(model_config):
     """The configs we sweep over.
 
     - fp16 baseline (no compression)
-    - KIVI 4-bit and 2-bit (naive per-channel quantization)
+    - quanto int-4 and int-2 (HF QuantizedCache with optimum-quanto backend)
     - Community TurboQuant at 4/3/2 bit
     - Our handrolled TurboQuant at 4/2 bit (for validation)
     """
     return [
         ("fp16 (baseline)",  "baseline_autoreg.json", None),
-        ("KIVI 4-bit",       "kivi_4bit.json",        make_kivi_factory(model_config, nbits=4)),
-        ("KIVI 2-bit",       "kivi_2bit.json",        make_kivi_factory(model_config, nbits=2)),
+        ("quanto int-4",     "quanto_int4.json",      make_quanto_factory(model_config, nbits=4)),
+        ("quanto int-2",     "quanto_int2.json",      make_quanto_factory(model_config, nbits=2)),
         ("TurboQuant 4-bit", "turboquant_4bit.json",  make_turboquant_factory(bits=4)),
         ("TurboQuant 3-bit", "turboquant_3bit.json",  make_turboquant_factory(bits=3)),
         ("TurboQuant 2-bit", "turboquant_2bit.json",  make_turboquant_factory(bits=2)),
@@ -201,7 +203,7 @@ def run_single_config(model, tokenizer, input_ids, config_name, cache_factory, a
 # ─── Main ────────────────────────────────────────────────────────────────────
 
 def main():
-    parser = argparse.ArgumentParser(description="Phase 3: TurboQuant + KIVI eval sweep")
+    parser = argparse.ArgumentParser(description="Phase 3: TurboQuant + quanto int-Nbit eval sweep")
     parser.add_argument("--model", default="NousResearch/Meta-Llama-3.1-8B-Instruct")
     parser.add_argument("--output-dir", default="language-model-improvements/results")
     parser.add_argument("--max-tokens", type=int, default=32768,
@@ -212,7 +214,7 @@ def main():
                         help="Tokens to prefill before autoregressive scoring")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--only-handrolled", action="store_true",
-                        help="Only run handrolled configs (skip fp16/KIVI/community TQ)")
+                        help="Only run handrolled configs (skip fp16/quanto/community TQ)")
     args = parser.parse_args()
 
     torch.manual_seed(args.seed)

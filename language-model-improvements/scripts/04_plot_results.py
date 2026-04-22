@@ -7,7 +7,7 @@ Produces three bar charts:
 
 Color coding:
 - Green = fp16 baseline
-- Blue = KIVI (naive quantization)
+- Blue = quanto int-Nbit (HF QuantizedCache, optimum-quanto backend)
 - Orange = TurboQuant
 
 Usage:
@@ -31,7 +31,7 @@ def categorize_color(config_name):
     """Assign color based on method type."""
     if "baseline" in config_name.lower() or "fp16" in config_name.lower():
         return "#4CAF50"   # green
-    elif "kivi" in config_name.lower():
+    elif "quanto" in config_name.lower():
         return "#2196F3"   # blue
     else:
         return "#FF9800"   # orange (TurboQuant)
@@ -83,7 +83,7 @@ def plot_metric(entries, metric_key, ylabel, title, label_fmt, output_path, high
 
     legend_elements = [
         Patch(facecolor="#4CAF50", label="fp16 baseline"),
-        Patch(facecolor="#2196F3", label="KIVI (naive quantization)"),
+        Patch(facecolor="#2196F3", label="quanto int-Nbit (naive baseline)"),
         Patch(facecolor="#FF9800", label="TurboQuant"),
     ]
     ax.legend(handles=legend_elements, loc="upper right" if higher_is_better else "upper left")
@@ -109,7 +109,7 @@ def main():
     plot_metric(
         entries, "ppl",
         ylabel="Perplexity (WikiText-2)",
-        title="Perplexity: fp16 vs KIVI vs TurboQuant\n(lower is better)",
+        title="Perplexity: fp16 vs quanto int-Nbit vs TurboQuant\n(lower is better)",
         label_fmt="{:.2f}",
         output_path=os.path.join(args.output_dir, "perplexity_comparison.png"),
     )
@@ -117,7 +117,7 @@ def main():
     plot_metric(
         entries, "mem_gb",
         ylabel="Peak GPU Memory (GB)",
-        title="Peak Memory: fp16 vs KIVI vs TurboQuant\n(lower is better)",
+        title="Peak Memory: fp16 vs quanto int-Nbit vs TurboQuant\n(lower is better)",
         label_fmt="{:.1f} GB",
         output_path=os.path.join(args.output_dir, "memory_comparison.png"),
     )
@@ -125,7 +125,7 @@ def main():
     plot_metric(
         entries, "tok_s",
         ylabel="Tokens / sec",
-        title="Generation Throughput: fp16 vs KIVI vs TurboQuant\n(higher is better)",
+        title="Generation Throughput: fp16 vs quanto int-Nbit vs TurboQuant\n(higher is better)",
         label_fmt="{:.1f}",
         output_path=os.path.join(args.output_dir, "throughput_comparison.png"),
         higher_is_better=True,
