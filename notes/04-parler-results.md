@@ -64,18 +64,22 @@ Two clean findings:
    distribution and reconstruction collapses. The rotation is doing
    real work, not decoration.
 
-2. **The Beta codebook does not dominate a well-tuned naive
-   baseline.** TurboQuant 2-bit (0.21 WER) and per-token min-max
-   uniform quantization (0.20 WER) are statistically indistinguishable
-   on this benchmark. TurboQuant wins by ~0.04 on speaker similarity,
-   but not on intelligibility. This is a refinement of the paper's
-   claim: on Llama-8B Part 1 showed TurboQuant 2-bit (PPL 6.13) beats
-   KIVI 2-bit (7.86) by a clear margin, so the codebook matters there.
-   On Parler-TTS at 2-bit, the codebook's specific optimality doesn't
-   give measurable intelligibility headroom over per-token min-max.
-   Plausible explanation: Parler's 880M decoder may have less
-   outlier-heavy K/V distributions than Llama-8B's attention, so
-   per-token adaptive scaling handles the range well enough.
+2. **Given the rotation is applied, the specific codebook choice
+   barely affects WER.** TurboQuant's Beta-optimal codebook
+   (0.21 WER) and a simple per-token adaptive min-max uniform
+   codebook (0.20 WER) are statistically indistinguishable on this
+   benchmark. On speaker similarity TurboQuant holds a small edge
+   (0.72 vs 0.68), but on intelligibility the two are tied. This
+   refines the paper's claim: on Llama-8B (Part 1) TurboQuant at
+   2-bit beats per-group int-2 quantization via optimum-quanto by
+   ~1.7 PPL — the Beta-optimal codebook clearly helps there. On
+   Parler-TTS the picture is more nuanced. Plausible explanation:
+   Parler's 880M decoder has less outlier-heavy K/V distributions,
+   so a per-token adaptive scale can re-fit itself to the range of
+   each vector and match the mathematical optimality of a fixed
+   Beta codebook. "Optimal" is always optimal-for-a-distribution;
+   when the distribution is less extreme, adaptive simple beats
+   fixed-optimal.
 
 ![WER](../speech-tts-improvements/parler/results/plots/wer.png)
 ![Speaker similarity](../speech-tts-improvements/parler/results/plots/speaker_similarity.png)
@@ -224,12 +228,62 @@ memory claim.
   plays the generated audio with duration / WER / speaker-sim chips
   and Whisper's transcript inline.
 
-## Bottom line
+## Conclusion
 
-TurboQuant compresses Parler-TTS's KV cache at 4/3/2-bit with no
-setup surprises and produces a monotonic quality-vs-bits curve that
-mirrors Part 1's pattern on text LLMs. 4-bit is essentially free;
-3-bit is the sweet spot; 2-bit has a real but usable cost. The
-algorithm transfers from text generation to audio generation
-without structural changes, just a `max_length` kwarg and an
-`EncoderDecoderCache` wrap around the cache object.
+**Does TurboQuant transfer from text LLMs to autoregressive TTS?**
+Yes, with a twist worth reporting.
+
+**What works cleanly:**
+- The algorithm runs end-to-end on Parler-TTS with no structural
+  changes (just pre-wrap the cache in `EncoderDecoderCache`).
+- Quality degrades monotonically with bit rate: 4-bit free, 3-bit
+  grey zone, 2-bit clearly degraded but usable.
+- At 4-bit the compressed cache produces output statistically
+  indistinguishable from fp16 (0.045 ± 0.025 vs 0.043 ± 0.029 WER
+  over 27 samples).
+
+**What the 2-bit ablation actually proves:**
+- The random rotation is essential. Skip it and 2-bit WER jumps
+  3× (0.21 → 0.65). The Beta codebook mis-matches the unrotated
+  distribution; reconstruction collapses.
+- The Beta-optimal codebook is not essential on this model. Keep
+  the rotation but swap the codebook for a naive per-token min-max
+  quantizer, and WER is the same (0.20 vs 0.21).
+
+**Why this differs from the LLM case:**
+On Llama-8B the full pipeline beats naive int-2 quantization by
+~1.7 PPL at 2-bit — both rotation and codebook contribute. On
+Parler-TTS only the rotation contributes measurably. Plausible
+explanation: Parler's 880M decoder has less outlier-heavy K/V
+distributions than Llama-8B's attention, so a per-token adaptive
+scale handles the range as well as the Beta-optimal fixed codebook.
+"Optimal" is always optimal-for-a-distribution; when the baseline
+distribution isn't as extreme, optimality doesn't buy much.
+
+**The general insight:**
+The rotation is the *transferable* part of TurboQuant — pure
+geometry (Johnson-Lindenstrauss preserves dot products, so
+attention math is invariant), and it flattens any distribution
+enough that a simple quantizer can handle it. The codebook is
+*distribution-specific* math that helps when the baseline
+distribution is bad. Practitioner takeaway: add the rotation
+first; the downstream quantizer can be simple.
+
+**What this work does NOT show:**
+- Memory savings (Parler's 30 s context cap keeps the fp16 KV
+  cache at a few MB; no compression benefit visible at this scale).
+- Statistically tight 3-bit result. n=27 is not enough to resolve
+  the 3-bit delta vs baseline; LibriTTS-scale would.
+- Per-tensor equivalence with the community `turboquant` package.
+  Only end-to-end perplexity was matched on Part 1; tensor-level
+  equivalence tests are in `tests/test_numerical_equivalence.py`
+  but they validate the algorithm against its paper spec, not
+  against a specific reference implementation.
+
+**Bottom line:**
+TurboQuant's rotation-based compression generalises to speech
+generation cleanly. Its specific codebook choice generalises less
+cleanly. And the residual buffer that makes the whole thing
+practical came from KIVI / StreamingLLM, not TurboQuant — the
+compression story is real, but the component attribution is more
+nuanced than any single paper claims.

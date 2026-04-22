@@ -7,7 +7,7 @@ Open-source comparative benchmarks of [TurboQuant](https://arxiv.org/abs/2504.19
 Large language models store a **KV cache** during text generation — cached Key and Value vectors from all previous tokens that the model reads back at each step to compute attention. At long context lengths, this cache can exceed the model weights in memory.
 
 **TurboQuant** compresses the KV cache using two steps:
-1. **Random orthogonal projection** — rotates each K/V vector into a new coordinate system where the value distribution is more uniform (flattens outlier channels)
+1. **Random orthogonal projection** — rotates each K/V vector into a new coordinate system where the value distribution is more uniform (so each coordinate follows a Beta distribution concentrated near zero, independent of per-channel outliers)
 2. **Optimal scalar quantization** — compresses each value to N bits using a codebook optimized for the Beta distribution of unit-sphere-normalized rotated vectors
 
 The projection makes the subsequent quantization much more effective, especially at aggressive compression levels (2-3 bits) where naive quantization fails.
@@ -19,8 +19,8 @@ Evaluated on **Llama-3.1-8B-Instruct**, WikiText-2 test set, autoregressive perp
 | Method | Bits | Perplexity | vs Baseline | Tokens/sec |
 |---|---:|---:|---:|---:|
 | **fp16 (baseline)** | 16 | **5.51** | — | 38.2 |
-| KIVI (naive quant) | 4 | 5.55 | +0.04 | 29.4 |
-| KIVI (naive quant) | 2 | 7.86 | +2.35 | 29.5 |
+| quanto int-4 (naive) | 4 | 5.55 | +0.04 | 29.4 |
+| quanto int-2 (naive) | 2 | 7.86 | +2.35 | 29.5 |
 | TurboQuant (community) | 4 | 5.54 | +0.03 | 34.4 |
 | TurboQuant (community) | 3 | 5.66 | +0.15 | 34.3 |
 | TurboQuant (community) | 2 | 6.13 | +0.62 | 34.3 |
@@ -32,14 +32,14 @@ Evaluated on **Llama-3.1-8B-Instruct**, WikiText-2 test set, autoregressive perp
 ### Key findings
 
 - **At 4-bit:** All methods are nearly equivalent. Compression doesn't stress any method enough for differences to matter.
-- **At 2-bit:** TurboQuant (6.07–6.13) dramatically outperforms naive KIVI (7.86). The random projection trick saves **1.7+ perplexity points** at the same compression ratio.
+- **At 2-bit:** TurboQuant (6.07–6.13) dramatically outperforms naive per-group int-2 quantization via optimum-quanto (7.86). The random projection trick saves **1.7+ perplexity points** at the same compression ratio.
 - **TurboQuant 3-bit on Llama-8B is almost free:** PPL 5.66 (+0.15 from baseline) at ~5x KV compression. On Parler-TTS (Part 2) 3-bit is a bigger jump — WER doubles from 0.06 → 0.12 — so the "sweet spot" framing is model-dependent, not universal.
 - **Our from-scratch implementation's end-to-end perplexity matches the community package** at every tested bit level. This is consistent with — but does not prove — algorithmic equivalence; both could be similarly wrong. A stronger validation (per-step tensor equivalence) is in [`tests/test_numerical_equivalence.py`](language-model-improvements/tests/test_numerical_equivalence.py).
-- **Throughput:** Community TurboQuant is ~10% slower than fp16 (projection overhead). KIVI is ~23% slower (quanto dequantization overhead). Our handrolled implementation is ~18x slower (pure PyTorch, no optimized kernels — correctness, not speed, was the goal).
+- **Throughput:** Community TurboQuant is ~10% slower than fp16 (projection overhead). quanto int-Nbit is ~23% slower (quanto dequantization overhead). Our handrolled implementation is ~18x slower (pure PyTorch, no optimized kernels — correctness, not speed, was the goal).
 
 ### What we learned along the way
 
-1. **Eval methodology matters critically.** Our first attempt used sliding-window perplexity (feeding tokens in bulk), which produced identical perplexity for KIVI and fp16. The reason: KIVI's cache returns original fp16 values during the same forward pass — quantization loss only appears when cached values are read back on subsequent generation steps. Switching to autoregressive eval (token-by-token) fixed this. [Issue log](notes/issue-log.md)
+1. **Eval methodology matters critically.** Our first attempt used sliding-window perplexity (feeding tokens in bulk), which produced identical perplexity for the naive quanto-quantized cache and fp16. The reason: the quantized cache returns original fp16 values during the same forward pass — quantization loss only appears when cached values are read back on subsequent generation steps. Switching to autoregressive eval (token-by-token) fixed this. [Issue log](notes/issue-log.md)
 
 2. **The residual buffer is essential at 2-bit.** Keeping the most recent 128 tokens at full precision (and only quantizing older tokens) dropped our handrolled 2-bit perplexity from 9.33 to 6.07. The model attends most strongly to recent tokens, so protecting them from quantization has outsized impact.
 
@@ -56,7 +56,7 @@ turboquant-experiments/
 │   ├── 02-what-im-measuring.md            # Why each metric matters
 │   ├── 03-results.md                      # Results interpretation
 │   ├── issue-log.md                       # Bugs encountered and how they were resolved
-│   └── scratch/                           # Pedagogical JL and outlier-flattening demos
+│   └── scratch/                           # Pedagogical JL and Beta-concentration demos
 ├── language-model-improvements/
 │   ├── handrolled_turboquant.py           # FROM-SCRATCH TurboQuant (~150 lines, fully commented)
 │   ├── kv_utils.py                        # KV cache memory math helpers
@@ -116,7 +116,7 @@ uv run pytest language-model-improvements/tests/ -v
 
 ## Conceptual notes
 
-The `notes/` directory contains the learning journey — written explanations of attention, KV caches, quantization, and the Johnson-Lindenstrauss lemma, plus pedagogical scripts that visualize random projection's dot-product preservation and outlier-flattening properties. These are the foundations that make the implementation make sense.
+The `notes/` directory contains the learning journey — written explanations of attention, KV caches, quantization, and the Johnson-Lindenstrauss lemma, plus pedagogical scripts that visualize random projection's dot-product preservation and Beta-concentration of rotated coordinates. These are the foundations that make the implementation make sense.
 
 ## Part 2: Parler-TTS
 
@@ -153,7 +153,7 @@ Evaluated on **Parler-TTS Mini v1** (880M), 9 Harvard-sentence prompts × 3 voic
 
 **Two findings from the ablation:**
 1. **The random projection is essential** — skipping it jumps WER from 0.21 to 0.65 (3× worse). The rotation is doing real work, not decoration.
-2. **The optimal codebook doesn't dominate a well-tuned naive baseline on TTS.** Per-token min-max uniform quantization ties TurboQuant on WER (0.20 vs 0.21) with slightly worse voice identity. This refines the paper's claim: on Llama-8B (Part 1) TurboQuant beats KIVI 2-bit by 1.7 PPL, but on Parler-TTS the Beta codebook's specific optimality doesn't show up in intelligibility numbers. The projection is the transferable insight; the codebook choice matters less.
+2. **Given the rotation is applied, the specific codebook choice barely affects WER on this model.** TurboQuant's Beta-optimal codebook (0.21 WER) and a simple per-token adaptive min-max uniform codebook (0.20 WER) are statistically indistinguishable. The rotation is essential — skip it and WER jumps to 0.65. But the Beta codebook's mathematical optimality doesn't give it measurable intelligibility headroom over a simple adaptive quantizer on Parler-TTS. On Llama-8B (Part 1) TurboQuant does beat per-group int-2 quantization (via optimum-quanto) by ~1.7 PPL, suggesting the fancy codebook matters more on some K/V distributions than others.
 
 Full writeup: [`notes/04-parler-results.md`](notes/04-parler-results.md). Listen to all 54 WAVs (9 prompts × 6 configs) with metrics inline in [`speech-tts-improvements/parler/results/audio_comparison.html`](speech-tts-improvements/parler/results/audio_comparison.html) — open locally.
 
@@ -161,13 +161,7 @@ Full writeup: [`notes/04-parler-results.md`](notes/04-parler-results.md). Listen
 
 #### Pivot: VibeVoice → Parler-TTS (2026-04-18)
 
-> **What changed.** Part 2 originally targeted Microsoft's **VibeVoice-Realtime-0.5B**. After landing on it, we hit a hard blocker and switched to **Parler-TTS Mini v1**, which answers the same scientific question (*does TurboQuant generalize to autoregressive TTS?*) on a cleanly-maintainable code path.
->
-> **Why VibeVoice is blocked.** VibeVoice-Realtime-0.5B requires `transformers >= 4.51.3` (for `qwen2` tokenizer_fast), but `transformers >= 4.55` removed `qwen2.tokenization_qwen2_fast` entirely. The only compatible window is `transformers [4.51, 4.55)` — and those versions use the **new** `DynamicCache` API (`.layers` property; `key_cache` is a deprecated wrapper), whereas VibeVoice's streaming inference code was written against the **old** `DynamicCache` API (`key_cache` = list of tensors). VibeVoice ships a `MockCacheLayer` shim to bridge the two APIs, but the shim is incomplete: it's missing `is_compileable`, `keys`/`values`, and other attributes the new property-based accessors dereference. Each patch exposes the next missing attribute. Fixing it properly requires rewriting `modeling_vibevoice_streaming_inference.py`'s cache layer to match the new API — a half-day of surgery on an abandoned repo, for an experiment whose question has nothing to do with VibeVoice specifically.
->
-> **Why Parler-TTS is the replacement.** Parler's decoder uses **standard HuggingFace `DynamicCache`**, so our `HandrolledTurboQuantCache` from Part 1 drops straight in via `model.generate(..., past_key_values=cache)` — the decoder auto-wraps our cache into the self-attention slot of the `EncoderDecoderCache`. No subclassing, no shims, no API mismatch. 880M params fits on A10G with massive headroom, and the inference path is documented on the model card.
->
-> **What's preserved, what's new.** All five VibeVoice scripts (model-load test, voice-prompt / raw-cache / model-structure inspectors, CPU wrapper) stay under [`speech-tts-improvements/vibevoice/`](speech-tts-improvements/vibevoice/) with a full diagnosis in [`notes/part2-vibevoice-blocked.md`](notes/part2-vibevoice-blocked.md) for anyone who wants to revive it. Parler-TTS scripts live under [`speech-tts-improvements/parler/scripts/`](speech-tts-improvements/parler/scripts/). Full pivot spec: [`docs/superpowers/specs/2026-04-18-part2-parler-pivot.md`](docs/superpowers/specs/2026-04-18-part2-parler-pivot.md). Implementation plan: [`docs/superpowers/plans/2026-04-18-part2-parler-impl.md`](docs/superpowers/plans/2026-04-18-part2-parler-impl.md).
+> **Pivot (2026-04-18)**: Part 2 originally targeted Microsoft VibeVoice-Realtime-0.5B, which turned out to be blocked by an incomplete MockCacheLayer shim against current transformers versions. We pivoted to Parler-TTS Mini v1, which uses standard HuggingFace DynamicCache (our handrolled cache plugs in with one EncoderDecoderCache wrap, no shim work). VibeVoice scripts preserved under [`speech-tts-improvements/vibevoice/`](speech-tts-improvements/vibevoice/) with a full diagnosis in [`notes/part2-vibevoice-blocked.md`](notes/part2-vibevoice-blocked.md).
 
 ### Why TTS?
 
@@ -180,7 +174,7 @@ Modern neural TTS models are structurally language models: they have transformer
 | Model | Llama-3.1-8B-Instruct | Parler-TTS Mini v1 (880M) |
 | Architecture | Decoder-only transformer | Encoder (Flan-T5-large) + autoregressive decoder + DAC audio codec |
 | Output | Text tokens | Audio codec tokens → 44.1 kHz waveform |
-| Quality metric | Perplexity | WER (intelligibility), speaker similarity (optional) |
+| Quality metric | Perplexity | WER (intelligibility), speaker similarity |
 | Speed metric | Tokens/sec | Real-time factor (RTF), time-to-first-audio |
 | Decoder KV cache | 32 layers, 8 KV heads (GQA), head_dim=128 | 24 layers, 16 KV heads (full MHA, no GQA), head_dim=64 |
 | Cache object | `DynamicCache` | `EncoderDecoderCache(self_attn=DynamicCache, cross_attn=DynamicCache)` — we target self-attn only |
